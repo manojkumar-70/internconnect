@@ -1,0 +1,257 @@
+.company-page {
+  min-height: 100vh;
+  background: #f7f8fc;
+}
+
+.company-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #1f2937;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  padding: 0.85rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-danger:hover {
+  transform: translateY(-1px);
+}
+
+.internships-grid,
+.applications-grid,
+.teams-grid,
+.tasks-grid,
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.internship-card,
+.application-card,
+.team-card,
+.task-card,
+.review-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.card-header,
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card-header h3,
+.review-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #111827;
+}
+
+.card-header p,
+.review-header p {
+  margin: 0.25rem 0 0;
+  color: #6b7280;
+}
+
+.status {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status.active {
+  background: #10b981;
+}
+
+.status.closed {
+  background: #6b7280;
+}
+
+..status.shortlisted,
+.status.interview-scheduled,
+.status.scheduled,
+.status.open,
+.status.new {
+  background: #6366f1;
+}
+
+.status.interview-scheduled {
+  background: #f59e0b;
+}
+
+.status.scheduled {
+  background: #3b82f6;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+}
+
+.info-row.highlight {
+  font-weight: 700;
+  color: #111827;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.empty-state,
+.empty-block {
+  text-align: center;
+  background: #fff;
+  border-radius: 18px;
+  padding: 2.5rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.empty-state p,
+.empty-block p {
+  margin: 1rem 0 0;
+  color: #6b7280;
+}
+
+.ratings-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.rating-box {
+  background: #fff;
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  text-align: center;
+}
+
+.rating-score {
+  display: block;
+  font-size: 3rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.rating-count {
+  display: block;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.rating-box p {
+  margin: 0.5rem 0 0;
+  color: #6b7280;
+}
+
+.review-card p {
+  margin: 1rem 0 0;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.rating-pill {
+  background: #f59e0b;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  font-weight: 700;
+}
+
+@media (max-width: 960px) {
+  .internships-grid,
+  .applications-grid,
+  .teams-grid,
+  .tasks-grid,
+  .reviews-grid,
+  .ratings-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .company-container {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header button {
+    width: 100%;
+  }
+}
+
+/* Clickable team card styling */
+.team-card {
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(15,23,42,0.12);
+}

@@ -1,0 +1,268 @@
+/* Navbar Container */
+.navbar {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  color: white;
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Navbar Brand/Logo */
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s;
+}
+
+.navbar-brand:hover {
+  transform: scale(1.05);
+}
+
+/* Navbar Links */
+.navbar-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-links li {
+  margin: 0;
+}
+
+.navbar-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  display: block;
+}
+
+.navbar-links a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Register Button */
+.btn-register {
+  background-color: #16a34a;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+.btn-register:hover {
+  background-color: #15803d;
+  transform: none !important;
+}
+
+/* Logout Button */
+.btn-logout {
+  background-color: transparent;
+  color: white;
+  border: 2px solid white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-logout:hover {
+  background-color: white;
+  color: #2563eb;
+}
+
+/* Hamburger Menu */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  gap: 0.5rem;
+}
+
+.hamburger span {
+  width: 25px;
+  height: 3px;
+  background-color: white;
+  transition: all 0.3s ease;
+  display: block;
+}
+
+/* Hamburger Menu Active State */
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(10px, 10px);
+}
+
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 0 1.5rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+
+  /* Show Hamburger Menu */
+  .hamburger {
+    display: flex;
+  }
+
+  /* Mobile Navbar Links */
+  .navbar-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #1e40af;
+    flex-direction: column;
+    gap: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    padding: 0;
+    margin-top: 0;
+  }
+
+  .navbar-links.active {
+    max-height: 500px;
+    padding: 1rem 0;
+  }
+
+  .navbar-links li {
+    width: 100%;
+    text-align: center;
+    padding: 0;
+  }
+
+  .navbar-links a {
+    color: white;
+    padding: 1rem;
+    display: block;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .navbar-links a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: none;
+  }
+
+  .btn-register {
+    background-color: #16a34a;
+    padding: 0.75rem 2rem !important;
+    margin: 0.5rem;
+    width: auto;
+  }
+
+  .btn-logout {
+    background-color: transparent;
+    color: white;
+    border: 2px solid white;
+    padding: 0.5rem 2rem;
+    margin: 0.5rem;
+    width: auto;
+  }
+
+  .btn-logout:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+}
+
+/* Tablet Responsive Design */
+@media (max-width: 1024px) {
+  .navbar-container {
+    padding: 0 1rem;
+  }
+
+  .navbar-links {
+    gap: 1rem;
+  }
+
+  .navbar-links a {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-register,
+  .btn-logout {
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* Small Mobile Devices */
+@media (max-width: 480px) {
+  .navbar-container {
+    padding: 0 1rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.1rem;
+  }
+
+  .hamburger span {
+    width: 20px;
+  }
+
+  .navbar-links.active {
+    max-height: 400px;
+    padding: 0.5rem 0;
+  }
+
+  .navbar-links a {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .navbar {
+    position: static;
+  }
+
+  .hamburger {
+    display: none;
+  }
+
+  .navbar-links {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    max-height: none !important;
+  }
+}

@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: internconnect-mongodb
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+    volumes:
+      - mongodb_data:/data/db
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: internconnect-backend
+    ports:
+      - '5000:5000'
+    environment:
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/internconnect
+      JWT_SECRET: your_jwt_secret_key_change_this_in_production
+      NODE_ENV: development
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend:/app
+
+  flask-service:
+    build:
+      context: ./flask-service
+      dockerfile: Dockerfile
+    container_name: internconnect-flask
+    ports:
+      - '5001:5001'
+    depends_on:
+      - backend
+    volumes:
+      - ./flask-service:/app
+      - ./flask-service/uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: internconnect-frontend
+    ports:
+      - '3000:3000'
+    environment:
+      REACT_APP_API_URL: http://localhost:5000/api
+      REACT_APP_FLASK_API_URL: http://localhost:5001
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_data:

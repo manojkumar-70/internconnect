@@ -1,0 +1,147 @@
+.admin-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+.admin-header {
+  margin-bottom: 2rem;
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 2.25rem;
+  color: #111827;
+}
+
+.admin-header p {
+  margin: 0.75rem 0 0;
+  color: #4b5563;
+  line-height: 1.75;
+}
+
+.stats-grid,
+.settings-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card,
+.setting-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 1.75rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.stat-card h2 {
+  margin: 0;
+  font-size: 2.75rem;
+  color: #111827;
+}
+
+.stat-card p,
+.setting-card p {
+  margin: 0.75rem 0 0;
+  color: #4b5563;
+}
+
+.admin-table-wrapper {
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  padding: 1rem;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table th {
+  font-weight: 700;
+  color: #374151;
+}
+
+.admin-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.btn-secondary,
+.btn-primary,
+.btn-danger {
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-danger:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 960px) {
+  .stats-grid,
+  .settings-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+.setting-detail-card {
+  margin-top: 2rem;
+  background: #fff;
+  border-radius: 18px;
+  padding: 1.75rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.setting-detail-card h2 {
+  margin-top: 0;
+  font-size: 1.9rem;
+  color: #111827;
+}
+
+.setting-detail-card p {
+  color: #4b5563;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+.setting-detail-card ul {
+  list-style: disc;
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #374151;
+}
+
+.setting-detail-card li {
+  margin-bottom: 0.6rem;
+}
