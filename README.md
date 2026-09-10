@@ -12,6 +12,5 @@ Internship platform with Admin, Student, and Company portals built using React, 
 - MongoDB database integration
 
 ## Project Status
-
 The InterConnect platform provides separate portals for students,
 companies, and administrators to manage internships and applications.
