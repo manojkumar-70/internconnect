@@ -466,16 +466,6 @@ const RegisterPage = () => {
             <div className="promo-icon">🚀</div>
             <h2>Build Your Future Today</h2>
             <p>Connect with companies seeking talented individuals and advance your career with real opportunities.</p>
-            <div className="promo-stats">
-              <div className="stat">
-                <div className="stat-number">12k+</div>
-                <div className="stat-label">STUDENTS</div>
-              </div>
-              <div className="stat">
-                <div className="stat-number">500+</div>
-                <div className="stat-label">COMPANIES</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

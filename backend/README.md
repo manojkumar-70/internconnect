@@ -157,7 +157,7 @@ curl -X POST http://localhost:5000/api/auth/student/register \
   -d '{
     "name": "John Doe",
     "email": "john@example.com",
-    "password": "password123",
+    "password": "<your-password>",
     "college": "MIT",
     "cgpa": 8.5,
     "skills": ["Python", "React"]
@@ -168,7 +168,7 @@ curl -X POST http://localhost:5000/api/auth/student/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "john@example.com",
-    "password": "password123"
+    "password": "<your-password>"
   }'
 
 # Get Profile (with token)

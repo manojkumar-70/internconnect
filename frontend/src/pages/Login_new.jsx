@@ -189,16 +189,6 @@ const Login = () => {
               Join thousands of students and companies building the future of work through our AI-powered internship ecosystem.
             </p>
 
-            <div className="hero-stats">
-              <div className="stat">
-                <div className="stat-number">5000+</div>
-                <div className="stat-label">STUDENTS PLACED</div>
-              </div>
-              <div className="stat">
-                <div className="stat-number">500+</div>
-                <div className="stat-label">TOP COMPANIES</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

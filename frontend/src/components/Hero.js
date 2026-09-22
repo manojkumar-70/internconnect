@@ -35,22 +35,6 @@ const Hero = () => {
             InternConnect helps students, companies and teams collaborate through smart internship matching. Find your perfect opportunity or hire top talent.
           </p>
 
-          {/* Stats Section */}
-          <div className="hero-stats">
-            <div className="stat-card">
-              <div className="stat-number">5000+</div>
-              <div className="stat-label">Active Students</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">500+</div>
-              <div className="stat-label">Companies</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">2000+</div>
-              <div className="stat-label">Internships</div>
-            </div>
-          </div>
-
           {/* CTA Buttons */}
           <div className="hero-buttons">
             <button

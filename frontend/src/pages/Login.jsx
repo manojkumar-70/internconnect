@@ -258,16 +258,6 @@ const Login = () => {
             <div className="promo-icon">🚀</div>
             <h2>Elevate Your Career with Data-Driven Matches</h2>
             <p>Join thousands of students and recruiters building the future of work through our AI-powered internship.</p>
-            <div className="promo-stats">
-              <div className="stat">
-                <div className="stat-number">12k+</div>
-                <div className="stat-label">STUDENTS PLACED</div>
-              </div>
-              <div className="stat">
-                <div className="stat-number">500+</div>
-                <div className="stat-label">TOP COMPANIES</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

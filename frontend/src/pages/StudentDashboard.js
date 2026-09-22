@@ -8,7 +8,7 @@ import Footer from '../components/Footer';
 import '../styles/StudentDashboard.css';
 
 const formatDate = (value) => {
-  if (!value) return '—';
+  if (!value) return 'Not available';
   try {
     return new Date(value).toLocaleDateString('en-IN', {
       day: 'numeric',
@@ -82,7 +82,7 @@ const buildRecommendedInternships = async (internships, studentProfile, studentU
             match: Math.max(0, Math.min(100, matchScore)),
             matchedSkills: matchedSkills.slice(0, 4),
             missingSkills: missingSkills.slice(0, 4),
-            explanation: response.data.explanation,
+            explanation: response.data.explanation || 'Not available',
           };
         }
       } catch (error) {
@@ -197,7 +197,7 @@ const StudentDashboard = () => {
     setSidebarOpen(false);
   };
 
-  const studentName = profile?.name || user?.name || 'Student';
+  const studentName = profile?.name || user?.name || 'Not available';
   const profileFields = ['name', 'college', 'cgpa', 'skills', 'resume', 'phone', 'bio', 'linkedin', 'portfolio', 'profilePicture'];
   const completedProfileFields = profileFields.filter((field) => {
     const value = profile?.[field];
@@ -281,7 +281,7 @@ const StudentDashboard = () => {
     if (recommendedInternships.length === 0) {
       return (
         <div className="empty-state compact">
-          <h3>No recommendations available</h3>
+          <h3>No data yet</h3>
           <p>Update your profile to help match better internship opportunities.</p>
         </div>
       );

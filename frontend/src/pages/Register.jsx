@@ -430,20 +430,6 @@ const Register = () => {
             Find the perfect internship opportunity that matches your skills and goals.
           </p>
 
-          <div className="hero-stats">
-            <div className="stat">
-              <div className="stat-number">5000+</div>
-              <div className="stat-label">Active Students</div>
-            </div>
-            <div className="stat">
-              <div className="stat-number">500+</div>
-              <div className="stat-label">Companies</div>
-            </div>
-            <div className="stat">
-              <div className="stat-number">2000+</div>
-              <div className="stat-label">Internships</div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
