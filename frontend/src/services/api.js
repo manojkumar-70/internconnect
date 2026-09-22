@@ -6,6 +6,7 @@ console.log('🌐 API Base URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -53,7 +54,11 @@ export const authAPI = {
   registerCompany: (data) => api.post('/auth/company/register', data),
   loginCompany: (data) => api.post('/auth/company/login', data),
   loginAdmin: (data) => api.post('/auth/admin/login', data),
+  exchangeGoogle: () => api.post('/auth/google/exchange'),
+  completeGoogleRegistration: (data) => api.post('/auth/google/complete-registration', data),
 };
+
+export { API_BASE_URL };
 
 // Student API
 export const studentAPI = {
@@ -119,12 +124,16 @@ export const ratingAPI = {
 export const adminAPI = {
   getDashboardStats: () => api.get('/admin/stats'),
   getStudents: () => api.get('/admin/students'),
+  getStudentDetails: (id) => api.get(`/admin/students/${id}`),
   removeStudent: (id) => api.delete(`/admin/students/${id}`),
   getCompanies: () => api.get('/admin/companies'),
+  getCompaniesPage: (params) => api.get('/admin/companies', { params }),
   updateCompanyVerification: (id, data) =>
     api.put(`/admin/companies/${id}/verify`, data),
   getApplicationStats: () => api.get('/admin/applications/stats'),
   getApplications: () => api.get('/admin/applications'),
+  getApplicationsPage: (params) => api.get('/admin/applications', { params }),
+  getInternshipsPage: (params) => api.get('/admin/internships', { params }),
 };
 
 export default api;

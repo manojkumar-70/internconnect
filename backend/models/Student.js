@@ -13,6 +13,11 @@ const studentSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
     },
+    googleId: {
+      type: String,
+      sparse: true,
+      index: true,
+    },
     password: {
       type: String,
       required: true,

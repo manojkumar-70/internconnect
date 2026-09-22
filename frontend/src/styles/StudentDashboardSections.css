@@ -1,0 +1,31 @@
+.dashboard-section-content { min-height: calc(100vh - 80px); }
+.section-hero { margin-bottom: 2rem; }
+.section-hero h1 { margin: 0.5rem 0; font-size: clamp(2rem, 4vw, 3rem); }
+.recommendation-list, .recovery-layout, .performance-layout { display: grid; gap: 1rem; }
+.recommendation-row, .recovery-application, .performance-panel, .performance-feature { background: #fff; border: 1px solid rgba(148,163,184,.2); border-radius: 18px; padding: 1.25rem; box-shadow: 0 12px 26px rgba(15,23,42,.06); }
+.recommendation-row { display: grid; grid-template-columns: 1.5fr .4fr 1.2fr auto; gap: 1.25rem; align-items: center; cursor: pointer; }
+.recommendation-row h2, .recovery-application h2 { margin: .35rem 0; }
+.recommendation-score { color: #166534; font-size: 1.8rem; font-weight: 800; text-align: center; }
+.recommendation-score span { display: block; color: #64748b; font-size: .72rem; text-transform: uppercase; }
+.recommendation-skills { display: grid; gap: .45rem; }
+.recommendation-skills strong, .performance-stat-list span, .recovery-task-row span { color: #64748b; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
+.recommendation-skills > div { display: flex; flex-wrap: wrap; gap: .35rem; }
+.recovery-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: start; margin-bottom: 1rem; }
+.recovery-task-list { display: grid; gap: .75rem; margin-top: 1rem; }
+.recovery-task-row { display: grid; grid-template-columns: 1.6fr .7fr .7fr .9fr auto; gap: 1rem; align-items: center; padding: 1rem; background: #f8fafc; border-radius: 12px; }
+.recovery-task-row h3 { margin-bottom: .25rem; }
+.recovery-task-row div { display: grid; gap: .2rem; }
+.performance-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+.performance-feature { display: grid; gap: .4rem; }
+.performance-feature span { color: #2563eb; font-size: .75rem; font-weight: 700; text-transform: uppercase; }
+.performance-feature strong { font-size: 1.5rem; }
+.performance-columns { display: grid; grid-template-columns: 1.2fr .8fr; gap: 1rem; }
+.performance-panel h2 { margin-bottom: 1rem; }
+.performance-stat-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; }
+.performance-stat-list div { display: grid; gap: .25rem; padding: .8rem; background: #f8fafc; border-radius: 10px; }
+.performance-activity { display: grid; gap: .65rem; }
+.performance-activity div { display: flex; justify-content: space-between; gap: 1rem; padding: .7rem .8rem; background: #f8fafc; border-radius: 10px; }
+.performance-activity span { color: #64748b; }
+.section-empty { display: grid; place-items: center; min-height: 55vh; gap: 1rem; text-align: center; background: #fff; border: 1px solid rgba(148,163,184,.2); border-radius: 18px; padding: 2rem; }
+@media (max-width: 900px) { .recommendation-row, .recovery-task-row { grid-template-columns: 1fr 1fr; } .recommendation-row .secondary-btn, .recovery-task-row .secondary-btn { grid-column: 1 / -1; } .performance-grid, .performance-columns { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .recommendation-row, .recovery-task-row, .performance-stat-list { grid-template-columns: 1fr; } .recovery-heading { flex-direction: column; } }

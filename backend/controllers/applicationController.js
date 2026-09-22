@@ -45,7 +45,13 @@ const applyForInternship = async (req, res) => {
 // Get student applications
 const getStudentApplications = async (req, res) => {
   try {
-    const applications = await Application.find({ student: req.userId }).populate('internship');
+    const applications = await Application.find({ student: req.userId }).populate({
+      path: 'internship',
+      populate: { path: 'company', select: 'companyName name' },
+    }).populate({
+      path: 'rejectionRecoveryTasks',
+      populate: { path: 'company', select: 'companyName name' },
+    });
     res.json(applications);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching applications', error: err.message });

@@ -12,6 +12,10 @@ Create a `.env` file in the backend directory:
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/internconnect
 JWT_SECRET=your_jwt_secret_key_change_this_in_production
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+FRONTEND_URL=http://localhost:3000
 NODE_ENV=development
 ```
 

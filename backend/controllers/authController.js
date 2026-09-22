@@ -3,6 +3,99 @@ const Company = require('../models/Company');
 const Admin = require('../models/Admin');
 const { generateToken } = require('../utils/jwtUtils');
 const { validateEmail, validatePassword } = require('../utils/validators');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback'
+);
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+const authSecret = () => process.env.JWT_SECRET || 'your_jwt_secret_key';
+const setAuthCookie = (res, name, value, maxAge) => {
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  const cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${maxAge}; Path=/; HttpOnly; SameSite=Lax${secure}`;
+  const existing = res.getHeader('Set-Cookie');
+  res.setHeader('Set-Cookie', existing ? [...(Array.isArray(existing) ? existing : [existing]), cookie] : [cookie]);
+};
+const clearAuthCookie = (res, name) => setAuthCookie(res, name, '', 0);
+const readCookie = (req, name) => {
+  const entry = String(req.headers.cookie || '').split(';').find((cookie) => cookie.trim().startsWith(`${name}=`));
+  return entry ? decodeURIComponent(entry.trim().slice(name.length + 1)) : null;
+};
+const signGoogleData = (data, expiresIn = '5m') => jwt.sign(data, authSecret(), { expiresIn });
+const verifyGoogleData = (token) => {
+  const data = jwt.verify(token, authSecret());
+  if (data.type !== 'google-handoff') throw new Error('Invalid Google handoff');
+  return data;
+};
+const publicUser = (account, role) => ({ id: account._id, name: account.name, email: account.email, role });
+
+const googleStart = (req, res) => {
+  const role = req.query.role;
+  if (!['student', 'company'].includes(role)) return res.status(400).json({ message: 'Choose Student or Company before using Google sign-in.' });
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) return res.status(503).json({ message: 'Google sign-in is not configured.' });
+  const state = signGoogleData({ type: 'google-state', role, nonce: crypto.randomBytes(16).toString('hex') });
+  return res.redirect(googleClient.generateAuthUrl({ scope: ['openid', 'email', 'profile'], response_type: 'code', state, prompt: 'select_account' }));
+};
+
+const googleCallback = async (req, res) => {
+  try {
+    const state = jwt.verify(req.query.state, authSecret());
+    if (state.type !== 'google-state' || !['student', 'company'].includes(state.role)) throw new Error('Invalid Google state');
+    const { tokens } = await googleClient.getToken(req.query.code);
+    const ticket = await googleClient.verifyIdToken({ idToken: tokens.id_token, audience: process.env.GOOGLE_CLIENT_ID });
+    const payload = ticket.getPayload();
+    if (!payload?.sub || !payload.email || payload.email_verified !== true) throw new Error('Google email is not verified');
+    setAuthCookie(res, 'google_handoff', signGoogleData({ type: 'google-handoff', role: state.role, googleId: payload.sub, email: payload.email.toLowerCase(), name: payload.name || payload.email, picture: payload.picture || null }), 300);
+    return res.redirect(`${frontendUrl}/auth/google/callback`);
+  } catch (err) {
+    return res.redirect(`${frontendUrl}/login?googleError=${encodeURIComponent('Google sign-in could not be completed.')}`);
+  }
+};
+
+const exchangeGoogle = async (req, res) => {
+  try {
+    const handoff = verifyGoogleData(readCookie(req, 'google_handoff'));
+    clearAuthCookie(res, 'google_handoff');
+    const [studentAccount, companyAccount] = await Promise.all([
+      Student.findOne({ email: handoff.email }),
+      Company.findOne({ email: handoff.email }),
+    ]);
+    const account = studentAccount || companyAccount;
+    if (account) {
+      const role = studentAccount ? 'student' : 'company';
+      if (!account.googleId) { account.googleId = handoff.googleId; await account.save(); }
+      return res.json({ token: generateToken(account._id, role), user: publicUser(account, role) });
+    }
+    setAuthCookie(res, 'google_signup', signGoogleData(handoff, '10m'), 600);
+    return res.json({ requiresRegistration: true, role: handoff.role, google: { email: handoff.email, name: handoff.name, picture: handoff.picture } });
+  } catch (err) {
+    clearAuthCookie(res, 'google_handoff');
+    return res.status(400).json({ message: 'Google sign-in session expired. Please try again.' });
+  }
+};
+
+const completeGoogleRegistration = async (req, res) => {
+  try {
+    const handoff = verifyGoogleData(readCookie(req, 'google_signup'));
+    const existingStudent = await Student.findOne({ email: handoff.email });
+    const existingCompany = await Company.findOne({ email: handoff.email });
+    if (existingStudent || existingCompany) return res.status(409).json({ message: 'An account with this email already exists. Sign in again with Google.' });
+    const generatedPassword = crypto.randomBytes(32).toString('hex');
+    const Model = handoff.role === 'student' ? Student : Company;
+    const account = new Model(handoff.role === 'student'
+      ? { name: handoff.name, email: handoff.email, password: generatedPassword, college: req.body.college, cgpa: req.body.cgpa, skills: req.body.skills || [], googleId: handoff.googleId }
+      : { name: req.body.name || handoff.name, email: handoff.email, password: generatedPassword, companyName: req.body.companyName, industry: req.body.industry, location: req.body.location, website: req.body.website || '', googleId: handoff.googleId });
+    await account.save();
+    clearAuthCookie(res, 'google_signup');
+    return res.status(201).json({ token: generateToken(account._id, handoff.role), user: publicUser(account, handoff.role) });
+  } catch (err) {
+    return res.status(400).json({ message: err.message || 'Unable to complete Google registration.' });
+  }
+};
 
 // Student Registration
 const registerStudent = async (req, res) => {
@@ -309,4 +402,8 @@ module.exports = {
   registerCompany,
   loginCompany,
   loginAdmin,
+  googleStart,
+  googleCallback,
+  exchangeGoogle,
+  completeGoogleRegistration,
 };

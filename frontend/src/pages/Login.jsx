@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../context/AuthContext';
-import { authAPI } from '../services/api';
+import { API_BASE_URL, authAPI } from '../services/api';
 import '../styles/Auth.css';
 
 const Login = () => {
@@ -97,6 +97,14 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    if (userType === 'admin') {
+      toast.info('Google sign-in is available for Student and Company accounts.');
+      return;
+    }
+    window.location.assign(`${API_BASE_URL}/auth/google?role=${userType}`);
   };
 
   return (
@@ -225,7 +233,7 @@ const Login = () => {
                 <span>OR CONTINUE WITH</span>
               </div>
               <div className="social-buttons">
-                <button type="button" className="social-btn google-btn" disabled={loading}>
+                <button type="button" className="social-btn google-btn" disabled={loading} onClick={handleGoogleLogin}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <circle cx="12" cy="12" r="10" />
                   </svg>

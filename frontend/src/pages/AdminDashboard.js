@@ -20,6 +20,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalStudents: 0,
     totalCompanies: 0,
+    totalInternships: 0,
     activeInternships: 0,
     totalApplications: 0,
     pendingActions: 0,
@@ -32,7 +33,6 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -45,11 +45,10 @@ const AdminDashboard = () => {
       setError('');
 
       try {
-        const [statsResult, studentsResult, applicationsResult, companiesResult, internshipsResult] = await Promise.allSettled([
+        const [statsResult, studentsResult, applicationsResult, internshipsResult] = await Promise.allSettled([
           adminAPI.getDashboardStats(),
           adminAPI.getStudents(),
           adminAPI.getApplications(),
-          adminAPI.getCompanies(),
           internshipAPI.getAll({}),
         ]);
 
@@ -58,11 +57,13 @@ const AdminDashboard = () => {
           setStats({
             totalStudents: payload.totalStudents ?? payload.students ?? 0,
             totalCompanies: payload.totalCompanies ?? payload.companies ?? 0,
+            totalInternships: payload.totalInternships ?? 0,
             activeInternships: payload.activeInternships ?? payload.internships ?? 0,
             totalApplications: payload.totalApplications ?? payload.applications ?? 0,
             pendingActions: payload.pendingActions ?? payload.pending ?? 0,
             verifiedCompanies: payload.verifiedCompanies ?? payload.verified ?? 0,
           });
+          setAlerts(Array.isArray(payload.notifications) ? payload.notifications : []);
         }
 
         if (studentsResult.status === 'fulfilled') {
@@ -77,8 +78,7 @@ const AdminDashboard = () => {
             name: student.name || 'Not available',
             email: student.email || 'Not available',
             college: student.college || 'Not available',
-            status: student.status || 'Not available',
-            performance: student.performance || 'Not available',
+            cgpa: student.cgpa,
           })));
         }
 
@@ -93,7 +93,7 @@ const AdminDashboard = () => {
             id: app._id || app.id,
             student: app.student?.name || 'Not available',
             internship: app.internship?.title || 'Not available',
-            company: app.company?.companyName || 'Not available',
+            company: app.internship?.company?.companyName || 'Not available',
             status: app.status || 'Not available',
             date: app.appliedDate || app.submittedOn || 'Not available',
           })));
@@ -109,19 +109,6 @@ const AdminDashboard = () => {
           setInternships(internshipList.slice(0, 5));
         }
 
-        if (companiesResult.status === 'fulfilled') {
-          const payload = companiesResult.value?.data ?? companiesResult.value ?? [];
-          const companyList = Array.isArray(payload)
-            ? payload
-            : Array.isArray(payload.companies)
-            ? payload.companies
-            : [];
-          if (companyList.length > 0) {
-            setAlerts(companyList
-              .filter((company) => !company.isVerified)
-              .map((company) => `${company.companyName || 'Company'} requires verification.`));
-          }
-        }
       } catch (err) {
         setError('Some dashboard data could not be loaded. Showing the latest available information.');
       } finally {
@@ -143,10 +130,9 @@ const AdminDashboard = () => {
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.college.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || student.status.toLowerCase() === statusFilter.toLowerCase();
-      return matchesSearch && matchesStatus;
+      return matchesSearch;
     });
-  }, [students, searchTerm, statusFilter]);
+  }, [students, searchTerm]);
 
   if (!user || user.role !== 'admin') {
     return null;
@@ -159,7 +145,7 @@ const AdminDashboard = () => {
         <div className="admin-dashboard-header">
           <div>
             <p className="admin-kicker">Mentor dashboard</p>
-            <h1>Welcome back, {user.name || 'Admin'}.</h1>
+            <h1>Welcome back, {user.name || 'Not available'}.</h1>
           </div>
           <div className="admin-header-actions">
             <Link to="/admin/stats" className="admin-primary-btn">Platform stats</Link>
@@ -178,7 +164,7 @@ const AdminDashboard = () => {
           <>
             <section className="admin-metrics-grid">
               <article className="admin-metric-card">
-                <div className="admin-metric-icon blue">👨‍🎓</div>
+                <div className="admin-metric-icon blue">ST</div>
                 <div>
                   <p>Total students</p>
                   <h3>{stats.totalStudents}</h3>
@@ -186,7 +172,7 @@ const AdminDashboard = () => {
               </article>
 
               <article className="admin-metric-card">
-                <div className="admin-metric-icon green">💼</div>
+                <div className="admin-metric-icon green">IN</div>
                 <div>
                   <p>Active internships</p>
                   <h3>{stats.activeInternships}</h3>
@@ -194,7 +180,7 @@ const AdminDashboard = () => {
               </article>
 
               <article className="admin-metric-card">
-                <div className="admin-metric-icon purple">📥</div>
+                <div className="admin-metric-icon purple">AP</div>
                 <div>
                   <p>Applications</p>
                   <h3>{stats.totalApplications}</h3>
@@ -202,7 +188,7 @@ const AdminDashboard = () => {
               </article>
 
               <article className="admin-metric-card">
-                <div className="admin-metric-icon orange">⚠️</div>
+                <div className="admin-metric-icon orange">PA</div>
                 <div>
                   <p>Pending actions</p>
                   <h3>{stats.pendingActions}</h3>
@@ -218,17 +204,14 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="admin-performance-list">
-                  {students.slice(0, 4).map((student) => (
+                  {students.length === 0 ? <div className="admin-empty-state"><h3>No students registered yet</h3><p>Student performance will appear here once students create accounts.</p></div> : students.slice(0, 4).map((student) => (
                     <div key={student.id} className="admin-performance-item">
                       <div>
                         <h4>{student.name}</h4>
                         <small>{student.college}</small>
                       </div>
                       <div className="admin-performance-right">
-                        <span className={`admin-status-badge ${student.status.toLowerCase()}`}>
-                          {student.status}
-                        </span>
-                        <strong>{student.performance}</strong>
+                        <strong>{student.cgpa !== undefined && student.cgpa !== null ? `${student.cgpa} / 10` : 'Not Available'}</strong>
                       </div>
                     </div>
                   ))}
@@ -241,8 +224,11 @@ const AdminDashboard = () => {
                   <span className="admin-tag">Live</span>
                 </div>
                 <ul className="admin-alert-list">
-                  {alerts.map((alert, index) => (
-                    <li key={`${alert}-${index}`}>{alert}</li>
+                  {alerts.length === 0 ? <li className="admin-empty-list-item"><strong>No new notifications</strong><span>You're all caught up.</span></li> : alerts.map((alert, index) => (
+                    <li key={`${alert.type}-${index}`}>
+                      {alert.type === 'company-verification' && `${alert.count} company verification record${alert.count === 1 ? '' : 's'} pending.`}
+                      {alert.type === 'application-review' && `${alert.count} application review record${alert.count === 1 ? '' : 's'} pending.`}
+                    </li>
                   ))}
                 </ul>
               </article>
@@ -266,7 +252,9 @@ const AdminDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {applications.map((application) => (
+                      {applications.length === 0 ? (
+                        <tr><td colSpan="4">No applications yet</td></tr>
+                      ) : applications.map((application) => (
                         <tr key={application.id}>
                           <td>{application.student}</td>
                           <td>{application.internship}</td>
@@ -275,7 +263,7 @@ const AdminDashboard = () => {
                               {formatStatus(application.status)}
                             </span>
                           </td>
-                          <td>{new Date(application.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                          <td>{application.date === 'Not available' ? 'Not available' : new Date(application.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -283,15 +271,23 @@ const AdminDashboard = () => {
                 </div>
               </article>
 
-              <article className="admin-panel">
+              <article className="admin-panel admin-quick-actions-panel">
                 <div className="admin-panel-header">
                   <h2>Quick actions</h2>
                 </div>
                 <div className="admin-quick-actions">
-                  <Link className="admin-action-btn" to="/admin/students">👨‍🎓 Students</Link>
-                  <Link className="admin-action-btn" to="/admin/companies">🏢 Companies</Link>
-                  <Link className="admin-action-btn" to="/admin/internships">📋 Internships</Link>
-                  <Link className="admin-action-btn" to="/admin/applications">📥 Applications</Link>
+                  <Link className="admin-action-card" to="/admin/students">
+                    <span className="admin-action-icon">01</span><span><strong>Manage Students</strong><small>View registered students and their profiles</small></span><b>{stats.totalStudents}</b><em>View Students</em>
+                  </Link>
+                  <Link className="admin-action-card" to="/admin/companies">
+                    <span className="admin-action-icon">02</span><span><strong>Manage Companies</strong><small>Review companies and verification status</small></span><b>{stats.totalCompanies}</b><em>View Companies</em>
+                  </Link>
+                  <Link className="admin-action-card" to="/admin/internships">
+                    <span className="admin-action-icon">03</span><span><strong>Manage Internships</strong><small>Review and manage internship listings</small></span><b>{stats.totalInternships}</b><em>View Internships</em>
+                  </Link>
+                  <Link className="admin-action-card" to="/admin/applications">
+                    <span className="admin-action-icon">04</span><span><strong>Manage Applications</strong><small>Track student applications and statuses</small></span><b>{stats.totalApplications}</b><em>View Applications</em>
+                  </Link>
                 </div>
               </article>
             </section>
@@ -307,19 +303,13 @@ const AdminDashboard = () => {
                     placeholder="Search student, email or college"
                     aria-label="Search students"
                   />
-                  <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filter students by status">
-                    <option value="all">All statuses</option>
-                    <option value="active">Active</option>
-                    <option value="pending">Pending</option>
-                    <option value="suspended">Suspended</option>
-                  </select>
                 </div>
               </div>
 
               {filteredStudents.length === 0 ? (
                 <div className="admin-empty-state">
                   <h3>No students match this filter.</h3>
-                  <p>Try a different search or reset the status filter.</p>
+                  <p>Try a different search.</p>
                 </div>
               ) : (
                 <div className="admin-table-wrap">
@@ -329,8 +319,7 @@ const AdminDashboard = () => {
                         <th>Name</th>
                         <th>Email</th>
                         <th>College</th>
-                        <th>Status</th>
-                        <th>Performance</th>
+                        <th>CGPA</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -339,12 +328,7 @@ const AdminDashboard = () => {
                           <td>{student.name}</td>
                           <td>{student.email}</td>
                           <td>{student.college}</td>
-                          <td>
-                            <span className={`admin-status-badge ${student.status.toLowerCase()}`}>
-                              {student.status}
-                            </span>
-                          </td>
-                          <td>{student.performance}</td>
+                          <td>{student.cgpa !== undefined && student.cgpa !== null ? `${student.cgpa} / 10` : 'Not Available'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -361,21 +345,21 @@ const AdminDashboard = () => {
 
               <div className="admin-internship-list">
                 {internships.map((internship) => (
-                  <article key={internship.id} className="admin-internship-card">
+                  <article key={internship._id || internship.id} className="admin-internship-card">
                     <div className="admin-internship-top">
                       <div>
                         <p className="admin-card-label">Internship</p>
                         <h3>{internship.title}</h3>
                       </div>
-                      <span className={`admin-status-badge ${String(internship.status).toLowerCase()}`}>
-                        {internship.status}
+                      <span className={`admin-status-badge ${String(internship.status || 'not-available').toLowerCase()}`}>
+                        {internship.status || 'Not available'}
                       </span>
                     </div>
 
                     <div className="admin-internship-meta">
-                      <span>🏢 {internship.company}</span>
-                      <span>📍 {internship.location}</span>
-                      <span>📨 {internship.applicants} applicants</span>
+                      <span>Company: {internship.company?.companyName || 'Not available'}</span>
+                      <span>Location: {internship.location || 'Not available'}</span>
+                      <span>Applicants: {Array.isArray(internship.applicants) ? internship.applicants.length : 0}</span>
                     </div>
 
                     <div className="admin-internship-actions">
@@ -384,6 +368,7 @@ const AdminDashboard = () => {
                     </div>
                   </article>
                 ))}
+                {internships.length === 0 && <div className="admin-empty-state"><h3>No internships available</h3></div>}
               </div>
             </section>
           </>

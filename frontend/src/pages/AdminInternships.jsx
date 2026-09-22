@@ -1,60 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { internshipAPI } from '../services/api';
+import { adminAPI } from '../services/api';
 import '../styles/AdminPages.css';
 
+const date = (value) => value ? new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not available';
+const Summary = ({ label, value }) => <div className="management-summary-card"><span>{label}</span><strong>{value}</strong></div>;
+const State = ({ title, detail }) => <div className="management-state"><h3>{title}</h3>{detail && <p>{detail}</p>}</div>;
+const Pagination = ({ page, pages, setPage }) => pages > 1 && <div className="management-pagination"><button disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button><span>Page {page} of {pages}</span><button disabled={page >= pages} onClick={() => setPage(page + 1)}>Next</button></div>;
+const Details = ({ item, close }) => <div className="management-backdrop" onClick={close}><section className="management-modal" onClick={(e) => e.stopPropagation()}><button className="modal-close" onClick={close}>Close</button><p className="admin-kicker">Internship record</p><h2>{item.title || 'Not available'}</h2><dl><dt>Company</dt><dd>{item.company?.companyName || 'Not available'}</dd><dt>Description</dt><dd>{item.description || 'Not available'}</dd><dt>Skills</dt><dd>{item.requiredSkills?.length ? item.requiredSkills.join(', ') : 'Not available'}</dd><dt>Location</dt><dd>{item.location || 'Not available'}</dd><dt>Type</dt><dd>{item.type || 'Not available'}</dd><dt>Stipend</dt><dd>{item.stipend ? `₹${Number(item.stipend).toLocaleString('en-IN')}` : 'Not available'}</dd><dt>Duration</dt><dd>{item.duration || 'Not available'}</dd><dt>Deadline</dt><dd>{date(item.endDate)}</dd><dt>Applicants</dt><dd>{Array.isArray(item.applicants) ? item.applicants.length : 0}</dd><dt>Status</dt><dd>{item.status || 'Not available'}</dd></dl></section></div>;
+
 const AdminInternships = () => {
-  const [internships, setInternships] = useState([]);
-
-  useEffect(() => {
-    internshipAPI.getAll({})
-      .then((response) => setInternships(Array.isArray(response.data) ? response.data : response.data?.internships || []))
-      .catch(() => setInternships([]));
-  }, []);
-
-  return (
-    <>
-      <Navbar />
-      <div className="admin-container">
-        <div className="admin-header">
-          <h1>Manage Internships</h1>
-          <p>Review, update, or archive internships posted by companies.</p>
-        </div>
-
-        <div className="admin-table-wrapper">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Company</th>
-                <th>Location</th>
-                <th>Applicants</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {internships.map(job => (
-                <tr key={job._id || job.id}>
-                  <td>{job.title || 'Not available'}</td>
-                  <td>{job.company?.companyName || job.companyName || 'Not available'}</td>
-                  <td>{job.location || 'Not available'}</td>
-                  <td>{job.applicants?.length || job.applicants || 0}</td>
-                  <td>{job.status || 'Not available'}</td>
-                  <td>
-                    <button className="btn-secondary">View</button>
-                    <button className="btn-danger">Archive</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <Footer />
-    </>
-  );
+  const [items, setItems] = useState([]); const [summary, setSummary] = useState({ total: 0, active: 0, pending: 0, closed: 0 }); const [selected, setSelected] = useState(null); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
+  const [filters, setFilters] = useState({ search: '', status: '', sort: 'posted', page: 1, limit: 20 }); const [pagination, setPagination] = useState({ pages: 1 });
+  const load = useCallback(async () => { setLoading(true); setError(''); try { const [list, stats] = await Promise.all([adminAPI.getInternshipsPage(filters), adminAPI.getDashboardStats()]); const data = list.data || {}; const counts = stats.data || {}; setItems(data.internships || []); setPagination(data.pagination || { pages: 1 }); setSummary({ total: counts.totalInternships || 0, active: counts.internships || 0, pending: 0, closed: counts.closedInternships || 0 }); } catch { setError('Unable to load internship records.'); setItems([]); } finally { setLoading(false); } }, [filters]);
+  useEffect(() => { load(); }, [load]);
+  return <><Navbar /><main className="admin-container admin-management-page"><header className="management-header"><div><p className="admin-kicker">Administration</p><h1>Internships</h1><p>Review and manage internship listings posted by registered companies.</p></div><button className="admin-secondary-btn" onClick={load}>Refresh</button></header><div className="management-summary"><Summary label="Total Internships" value={summary.total} /><Summary label="Active" value={summary.active} /><Summary label="Pending / Under Review" value={summary.pending} /><Summary label="Closed / Archived" value={summary.closed} /></div><section className="admin-panel"><div className="management-toolbar"><input value={filters.search} placeholder="Search title or company" onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })} /><select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}><option value="">All</option><option value="open">Active</option><option value="in-progress">In progress</option><option value="closed">Closed</option><option value="completed">Archived / Completed</option></select><select value={filters.sort} onChange={(e) => setFilters({ ...filters, sort: e.target.value, page: 1 })}><option value="posted">Posted date</option><option value="deadline">Deadline</option><option value="applicants">Applicant count</option></select><button className="admin-secondary-btn" onClick={() => setFilters({ search: '', status: '', sort: 'posted', page: 1, limit: 20 })}>Clear filters</button></div>{loading ? <State title="Loading internships..." /> : error ? <State title={error} /> : items.length === 0 ? <State title="No internships posted yet." /> : <div className="management-table-wrap"><table className="management-table"><thead><tr><th>Title</th><th>Company</th><th>Location</th><th>Type</th><th>Applicants</th><th>Posted</th><th>Status</th><th>Actions</th></tr></thead><tbody>{items.map((item) => <tr key={item._id}><td>{item.title || 'Not available'}</td><td>{item.company?.companyName || 'Not available'}</td><td>{item.location || 'Not available'}</td><td>{item.type || 'Not available'}</td><td>{item.applicants?.length || 0}</td><td>{date(item.createdAt)}</td><td>{item.status || 'Not available'}</td><td className="management-actions"><button onClick={() => setSelected(item)}>View Details</button>{['open', 'in-progress'].includes(item.status) && <button disabled>Close unavailable</button>}</td></tr>)}</tbody></table></div>}<Pagination page={filters.page} pages={pagination.pages} setPage={(page) => setFilters({ ...filters, page })} /></section></main>{selected && <Details item={selected} close={() => setSelected(null)} />}<Footer /></>;
 };
-
 export default AdminInternships;

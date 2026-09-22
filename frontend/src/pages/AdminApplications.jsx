@@ -1,67 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import React, { useCallback, useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { adminAPI } from '../services/api';
 import '../styles/AdminPages.css';
 
+const date = (value) => value ? new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not available';
+const Summary = ({ label, value }) => <div className="management-summary-card"><span>{label}</span><strong>{value}</strong></div>;
+const State = ({ title, detail }) => <div className="management-state"><h3>{title}</h3>{detail && <p>{detail}</p>}</div>;
+const Pagination = ({ page, pages, setPage }) => pages > 1 && <div className="management-pagination"><button disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button><span>Page {page} of {pages}</span><button disabled={page >= pages} onClick={() => setPage(page + 1)}>Next</button></div>;
+const Details = ({ item, close }) => <div className="management-backdrop" onClick={close}><section className="management-modal" onClick={(e) => e.stopPropagation()}><button className="modal-close" onClick={close}>Close</button><p className="admin-kicker">Application record</p><h2>{item.student?.name || 'Not available'}</h2><dl><dt>Student email</dt><dd>{item.student?.email || 'Not available'}</dd><dt>College</dt><dd>{item.student?.college || 'Not available'}</dd><dt>Internship</dt><dd>{item.internship?.title || 'Not available'}</dd><dt>Company</dt><dd>{item.internship?.company?.companyName || 'Not available'}</dd><dt>Applied</dt><dd>{date(item.appliedDate)}</dd><dt>Status</dt><dd>{item.status || 'Not available'}</dd><dt>Cover letter</dt><dd>{item.coverLetter || 'Not available'}</dd><dt>Resume</dt><dd>{item.student?.resume ? <a href={item.student.resume} target="_blank" rel="noreferrer">View resume</a> : 'Not available'}</dd></dl></section></div>;
+
 const AdminApplications = () => {
-  const [applications, setApplications] = useState([]);
-
-  useEffect(() => {
-    adminAPI.getApplications()
-      .then((response) => setApplications(Array.isArray(response.data) ? response.data : response.data?.applications || []))
-      .catch(() => setApplications([]));
-  }, []);
-
-  const handleDetails = (app) => {
-    toast.info(
-      `${app.student?.name || 'Not available'} applied for ${app.internship?.title || 'Not available'} at ${app.internship?.company?.companyName || 'Not available'}\nStatus: ${app.status || 'Not available'}\nSubmitted: ${app.appliedDate || 'Not available'}\nMessage: ${app.coverLetter || 'Not available'}`,
-      { autoClose: 7000, pauseOnHover: true }
-    );
-  };
-
-  return (
-    <>
-      <Navbar />
-      <div className="admin-container">
-        <div className="admin-header">
-          <h1>Manage Applications</h1>
-          <p>Monitor applications across companies and verify submission statuses.</p>
-        </div>
-
-        <div className="admin-table-wrapper">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Internship</th>
-                <th>Company</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {applications.map((app) => (
-                <tr key={app._id || app.id}>
-                  <td>{app.student?.name || 'Not available'}</td>
-                  <td>{app.internship?.title || 'Not available'}</td>
-                  <td>{app.internship?.company?.companyName || 'Not available'}</td>
-                  <td>{app.status || 'Not available'}</td>
-                  <td>
-                    <button className="btn-secondary" onClick={() => handleDetails(app)}>
-                      Details
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <Footer />
-    </>
-  );
+  const [items, setItems] = useState([]); const [summary, setSummary] = useState({ total: 0, pending: 0, shortlisted: 0, accepted: 0, rejected: 0 }); const [selected, setSelected] = useState(null); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
+  const [filters, setFilters] = useState({ search: '', status: '', page: 1, limit: 20 }); const [pagination, setPagination] = useState({ pages: 1 });
+  const load = useCallback(async () => { setLoading(true); setError(''); try { const [list, stats] = await Promise.all([adminAPI.getApplicationsPage(filters), adminAPI.getApplicationStats()]); const data = list.data || {}; const counts = stats.data || {}; setItems(data.applications || []); setPagination(data.pagination || { pages: 1 }); setSummary({ total: counts.total || 0, pending: counts.pending || 0, shortlisted: counts.shortlisted || 0, accepted: counts.accepted || 0, rejected: counts.rejected || 0 }); } catch { setError('Unable to load application records.'); setItems([]); } finally { setLoading(false); } }, [filters]);
+  useEffect(() => { load(); }, [load]);
+  return <><Navbar /><main className="admin-container admin-management-page"><header className="management-header"><div><p className="admin-kicker">Administration</p><h1>Applications</h1><p>Track real student applications and their current database status.</p></div><button className="admin-secondary-btn" onClick={load}>Refresh</button></header><div className="management-summary management-summary-five"><Summary label="Total Applications" value={summary.total} /><Summary label="Pending" value={summary.pending} /><Summary label="Shortlisted" value={summary.shortlisted} /><Summary label="Accepted" value={summary.accepted} /><Summary label="Rejected" value={summary.rejected} /></div><section className="admin-panel"><div className="management-toolbar"><input value={filters.search} placeholder="Search student, internship or company" onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })} /><select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}><option value="">All</option><option value="pending">Pending</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option></select><button className="admin-secondary-btn" onClick={() => setFilters({ search: '', status: '', page: 1, limit: 20 })}>Clear filters</button></div>{loading ? <State title="Loading applications..." /> : error ? <State title={error} /> : items.length === 0 ? <State title="No applications yet." /> : <div className="management-table-wrap"><table className="management-table"><thead><tr><th>Student</th><th>Internship</th><th>Company</th><th>Applied</th><th>Status</th><th>Actions</th></tr></thead><tbody>{items.map((item) => <tr key={item._id}><td>{item.student?.name || 'Not available'}</td><td>{item.internship?.title || 'Not available'}</td><td>{item.internship?.company?.companyName || 'Not available'}</td><td>{date(item.appliedDate)}</td><td><span className={`management-status ${item.status}`}>{item.status || 'Not available'}</span></td><td className="management-actions"><button onClick={() => setSelected(item)}>View Application</button></td></tr>)}</tbody></table></div>}<Pagination page={filters.page} pages={pagination.pages} setPage={(page) => setFilters({ ...filters, page })} /></section></main>{selected && <Details item={selected} close={() => setSelected(null)} />}<Footer /></>;
 };
-
 export default AdminApplications;

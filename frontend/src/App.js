@@ -35,6 +35,8 @@ import AdminSettings from './pages/AdminSettings';
 import TeamDetails from './pages/TeamDetails';
 import RecoveryTaskDetails from './pages/RecoveryTaskDetails';
 import NotFound from './pages/NotFound';
+import GoogleAuthCallback from './pages/GoogleAuthCallback';
+import GoogleSignup from './pages/GoogleSignup';
 
 function App() {
   return (
@@ -44,10 +46,13 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
+            <Route path="/auth/google/signup" element={<GoogleSignup />} />
             <Route path="/register" element={<Register />} />
             <Route path="/internships" element={<InternshipList />} />
             <Route path="/internships/:id" element={<InternshipDetail />} />
             <Route path="/student-dashboard" element={<StudentDashboard />} />
+            <Route path="/student-dashboard/:section" element={<StudentDashboard />} />
             <Route path="/company-dashboard" element={<CompanyDashboard />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/student/profile" element={<StudentProfile />} />

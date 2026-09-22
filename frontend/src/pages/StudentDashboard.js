@@ -1,10 +1,11 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { studentAPI, internshipAPI, applicationAPI, taskAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import StudentDashboardSection from './StudentDashboardSection';
 import '../styles/StudentDashboard.css';
 
 const formatDate = (value) => {
@@ -40,14 +41,22 @@ const normalizeSkillList = (value) => {
   )].map((entry) => entry.toLowerCase());
 };
 
-const buildRecommendedInternships = async (internships, studentProfile, studentUser) => {
+const buildRecommendedInternships = async (internships, studentProfile) => {
   if (!studentProfile) return [];
 
-  const rawStudentSkills = studentProfile.skills || [];
+  const rawStudentSkills = [
+    studentProfile.skills,
+    studentProfile.interests,
+    studentProfile.bio,
+    studentProfile.course,
+    studentProfile.major,
+    studentProfile.degree,
+  ].filter(Boolean);
   const studentSkills = normalizeSkillList(rawStudentSkills);
   const studentCgpa = Number(studentProfile.cgpa);
 
-  if (!studentSkills.length && !Number.isFinite(studentCgpa)) return [];
+  const hasCgpa = studentProfile.cgpa !== null && studentProfile.cgpa !== undefined && Number.isFinite(studentCgpa);
+  if (!studentSkills.length && !hasCgpa) return [];
 
   const recommendationCandidates = await Promise.all(
     internships.map(async (item) => {
@@ -62,32 +71,30 @@ const buildRecommendedInternships = async (internships, studentProfile, studentU
         missingSkills = jobSkills.filter((skill) => !studentSkills.includes(skill));
       }
 
-      try {
-        const response = await axios.post('http://localhost:5001/api/resume/match-score', {
-          skills: studentSkills,
-          jobSkills,
-          cgpa: studentCgpa,
-          minCGPA: minCgpa,
-        });
+      const response = await axios.post('http://localhost:5001/api/resume/match-score', {
+        skills: studentSkills,
+        jobSkills,
+        cgpa: Number.isFinite(studentCgpa) ? studentCgpa : null,
+        minCGPA: Number.isFinite(minCgpa) ? minCgpa : null,
+      });
 
-        if (response?.data && typeof response.data.matchScore === 'number') {
-          const matchScore = response.data.matchScore;
-          return {
-            id: item._id || item.id,
-            company: item.company?.companyName || item.companyName,
-            position: item.title,
-            location: item.location,
-            duration: item.duration,
-            salary: item.stipend ? `₹${Number(item.stipend).toLocaleString('en-IN')}/month` : 'Not available',
-            match: Math.max(0, Math.min(100, matchScore)),
-            matchedSkills: matchedSkills.slice(0, 4),
-            missingSkills: missingSkills.slice(0, 4),
-            explanation: response.data.explanation || 'Not available',
-          };
-        }
-      } catch (error) {
-        return null;
+      if (response?.data && typeof response.data.matchScore === 'number') {
+        const matchScore = response.data.matchScore;
+        return {
+          id: item._id || item.id,
+          company: item.company?.companyName || item.companyName || 'Not available',
+          position: item.title || 'Not available',
+          location: item.location || 'Not available',
+          duration: item.duration || 'Not available',
+          salary: item.stipend ? `₹${Number(item.stipend).toLocaleString('en-IN')}/month` : 'Not available',
+          match: Math.max(0, Math.min(100, matchScore)),
+          matchedSkills: matchedSkills.slice(0, 4),
+          missingSkills: missingSkills.slice(0, 4),
+          explanation: response.data.explanation || 'Match calculated from your profile and this internship.',
+        };
       }
+
+      return null;
     })
   );
 
@@ -100,16 +107,19 @@ const buildRecommendedInternships = async (internships, studentProfile, studentU
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useContext(AuthContext);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [profile, setProfile] = useState(null);
   const [applications, setApplications] = useState([]);
   const [recommendedInternships, setRecommendedInternships] = useState([]);
+  const [recommendationState, setRecommendationState] = useState('loading');
   const [recoveryTasks, setRecoveryTasks] = useState([]);
   const [interviews, setInterviews] = useState([]);
+  const section = location.pathname.split('/')[2];
+  const activeSection = ['recommended', 'tasks', 'performance'].includes(section) ? section : 'overview';
 
   useEffect(() => {
     if (!user || user.role !== 'student') {
@@ -147,16 +157,42 @@ const StudentDashboard = () => {
             ? internshipsResponse.value.data
             : internshipsResponse.value.data?.internships || [];
 
-          if (items.length > 0) {
+          if (profileResponse.status !== 'fulfilled' || !profileResponse.value.data) {
+            setRecommendationState('incomplete');
+            setRecommendedInternships([]);
+          } else if (items.length === 0) {
+            setRecommendationState('empty');
+            setRecommendedInternships([]);
+          } else {
             const mergedStudentProfile = profileResponse.status === 'fulfilled'
               ? profileResponse.value.data || null
               : null;
 
-            const nextRecommendations = await buildRecommendedInternships(items, mergedStudentProfile, user);
-            setRecommendedInternships(nextRecommendations);
-          } else {
-            setRecommendedInternships([]);
+            const hasProfileData = normalizeSkillList([
+              mergedStudentProfile?.skills,
+              mergedStudentProfile?.interests,
+              mergedStudentProfile?.bio,
+              mergedStudentProfile?.course,
+              mergedStudentProfile?.major,
+              mergedStudentProfile?.degree,
+            ]).length > 0 || (
+              mergedStudentProfile?.cgpa !== null &&
+              mergedStudentProfile?.cgpa !== undefined &&
+              Number.isFinite(Number(mergedStudentProfile.cgpa))
+            );
+
+            if (!hasProfileData) {
+              setRecommendationState('incomplete');
+              setRecommendedInternships([]);
+            } else {
+              const nextRecommendations = await buildRecommendedInternships(items, mergedStudentProfile);
+              setRecommendedInternships(nextRecommendations);
+              setRecommendationState(nextRecommendations.length > 0 ? 'ready' : 'empty');
+            }
           }
+        } else {
+          setRecommendationState('error');
+          setRecommendedInternships([]);
         }
 
         if (tasksResponse.status === 'fulfilled') {
@@ -173,6 +209,7 @@ const StudentDashboard = () => {
           setInterviews(records);
         }
       } catch (err) {
+        setRecommendationState('error');
         setError('Some dashboard data could not be loaded.');
       } finally {
         setLoading(false);
@@ -184,12 +221,16 @@ const StudentDashboard = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login');
   };
 
   const navigateTo = (path) => {
     navigate(path);
     setSidebarOpen(false);
+  };
+
+  const navigateToSection = (nextSection) => {
+    navigateTo(nextSection === 'overview' ? '/student-dashboard' : `/student-dashboard/${nextSection}`);
   };
 
   const handleTaskClick = (task) => {
@@ -222,6 +263,17 @@ const StudentDashboard = () => {
 
   if (!user || user.role !== 'student') {
     return null;
+  }
+
+  if (activeSection !== 'overview') {
+    return (
+      <StudentDashboardSection
+        section={activeSection}
+        user={user}
+        logout={logout}
+        navigate={navigate}
+      />
+    );
   }
 
   if (loading) {
@@ -278,11 +330,23 @@ const StudentDashboard = () => {
   };
 
   const renderRecommendedCards = () => {
+    if (recommendationState === 'loading') {
+      return <div className="empty-state compact"><h3>Loading recommendations...</h3></div>;
+    }
+
+    if (recommendationState === 'error') {
+      return <div className="empty-state compact"><h3>Unable to load recommendations.</h3><p>Please try again later.</p></div>;
+    }
+
+    if (recommendationState === 'incomplete') {
+      return <div className="empty-state compact"><h3>Complete your profile to get recommendations.</h3><button className="secondary-btn" onClick={() => navigateTo('/student/profile')}>Complete Profile</button></div>;
+    }
+
     if (recommendedInternships.length === 0) {
       return (
         <div className="empty-state compact">
-          <h3>No data yet</h3>
-          <p>Update your profile to help match better internship opportunities.</p>
+          <h3>No recommendations available.</h3>
+          <p>No current internships match your profile data.</p>
         </div>
       );
     }
@@ -290,7 +354,16 @@ const StudentDashboard = () => {
     return (
       <div className="internships-grid ai-grid">
         {recommendedInternships.map((internship) => (
-          <article key={internship.id || internship._id} className="internship-card ai-recommendation-card">
+          <article
+            key={internship.id || internship._id}
+            className="internship-card ai-recommendation-card"
+            role="link"
+            tabIndex="0"
+            onClick={() => navigateTo(`/internships/${internship.id}`)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') navigateTo(`/internships/${internship.id}`);
+            }}
+          >
             <div className="card-header">
               <div>
                 <p className="card-kicker">AI match</p>
@@ -334,7 +407,7 @@ const StudentDashboard = () => {
 
             <p className="ai-explanation">{internship.explanation}</p>
 
-            <button className="secondary-btn" onClick={() => navigateTo('/internships')}>
+            <button className="secondary-btn" onClick={() => navigateTo(`/internships/${internship.id}`)}>
               View Role
             </button>
           </article>
@@ -390,7 +463,7 @@ const StudentDashboard = () => {
           <nav className="sidebar-nav">
             <button
               className={`nav-item ${activeSection === 'overview' ? 'active' : ''}`}
-              onClick={() => { setActiveSection('overview'); setSidebarOpen(false); }}
+              onClick={() => navigateToSection('overview')}
             >
               <span className="nav-icon">📊</span>
               <span>Overview</span>
@@ -398,7 +471,7 @@ const StudentDashboard = () => {
 
             <button
               className={`nav-item ${activeSection === 'applications' ? 'active' : ''}`}
-              onClick={() => { setActiveSection('applications'); setSidebarOpen(false); }}
+              onClick={() => navigateTo('/my-applications')}
             >
               <span className="nav-icon">📋</span>
               <span>My Applications</span>
@@ -406,7 +479,7 @@ const StudentDashboard = () => {
 
             <button
               className={`nav-item ${activeSection === 'recommended' ? 'active' : ''}`}
-              onClick={() => { setActiveSection('recommended'); setSidebarOpen(false); }}
+              onClick={() => navigateToSection('recommended')}
             >
               <span className="nav-icon">🔍</span>
               <span>Recommended</span>
@@ -414,15 +487,15 @@ const StudentDashboard = () => {
 
             <button
               className={`nav-item ${activeSection === 'tasks' ? 'active' : ''}`}
-              onClick={() => { setActiveSection('tasks'); setSidebarOpen(false); }}
+              onClick={() => navigateToSection('tasks')}
             >
               <span className="nav-icon">📝</span>
               <span>Recovery Tasks</span>
             </button>
 
             <button
-              className={`nav-item ${activeSection === 'badges' ? 'active' : ''}`}
-              onClick={() => { setActiveSection('badges'); setSidebarOpen(false); }}
+              className={`nav-item ${activeSection === 'performance' ? 'active' : ''}`}
+              onClick={() => navigateToSection('performance')}
             >
               <span className="nav-icon">🏆</span>
               <span>Performance</span>
@@ -630,7 +703,7 @@ const StudentDashboard = () => {
             <section className="panel tasks-panel">
               <div className="panel-header">
                 <h2>Recovery Tasks</h2>
-                <button className="text-btn" onClick={() => navigateTo('/tasks')}>
+                <button className="text-btn" onClick={() => navigateToSection('tasks')}>
                   Open tasks
                 </button>
               </div>
@@ -638,7 +711,7 @@ const StudentDashboard = () => {
             </section>
           )}
 
-          {(activeSection === 'overview' || activeSection === 'badges') && (
+          {(activeSection === 'overview' || activeSection === 'performance') && (
             <section className="panel badges-panel">
               <div className="panel-header">
                 <h2>Quick Actions</h2>
@@ -654,7 +727,7 @@ const StudentDashboard = () => {
                 <button className="quick-action" onClick={() => navigateTo('/student/profile')}>
                   <span>👤</span> Edit profile
                 </button>
-                <button className="quick-action" onClick={() => navigateTo('/tasks')}>
+                <button className="quick-action" onClick={() => navigateToSection('tasks')}>
                   <span>📝</span> Tasks
                 </button>
               </div>

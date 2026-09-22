@@ -565,6 +565,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  cursor: pointer;
 }
 
 .ai-score-box {

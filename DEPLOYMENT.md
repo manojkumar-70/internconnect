@@ -25,6 +25,10 @@ Create `.env` files:
 PORT=5000
 MONGODB_URI=mongodb://admin:admin123@mongodb:27017/internconnect?authSource=admin
 JWT_SECRET=your_very_secure_secret_key_here_change_this
+GOOGLE_CLIENT_ID=your_production_google_client_id
+GOOGLE_CLIENT_SECRET=your_production_google_client_secret
+GOOGLE_CALLBACK_URL=https://your-api-domain.example.com/api/auth/google/callback
+FRONTEND_URL=https://your-frontend-domain.example.com
 NODE_ENV=production
 ```
 

@@ -1,91 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { adminAPI } from '../services/api';
 import '../styles/AdminPages.css';
 
+const date = (value) => value ? new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not available';
+const Summary = ({ label, value }) => <div className="management-summary-card"><span>{label}</span><strong>{value}</strong></div>;
+const Status = ({ value }) => <span className={`management-status ${String(value).toLowerCase()}`}>{value}</span>;
+const PanelState = ({ text, detail, error }) => <div className={`management-state ${error ? 'error' : ''}`}><h3>{text}</h3>{detail && <p>{detail}</p>}</div>;
+const Pagination = ({ page, pages, setPage }) => pages > 1 && <div className="management-pagination"><button disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button><span>Page {page} of {pages}</span><button disabled={page >= pages} onClick={() => setPage(page + 1)}>Next</button></div>;
+
+const CompanyDetails = ({ company, close }) => <div className="management-backdrop" onClick={close}><section className="management-modal" onClick={(e) => e.stopPropagation()}><button className="modal-close" onClick={close}>Close</button><p className="admin-kicker">Company record</p><h2>{company.companyName || 'Not available'}</h2><dl><dt>Recruiter</dt><dd>{company.name || 'Not available'}</dd><dt>Email</dt><dd>{company.email || 'Not available'}</dd><dt>Phone</dt><dd>{company.phone || 'Not available'}</dd><dt>Industry</dt><dd>{company.industry || 'Not available'}</dd><dt>Location</dt><dd>{company.location || 'Not available'}</dd><dt>Website</dt><dd>{company.website || 'Not available'}</dd><dt>Description</dt><dd>{company.description || 'Not available'}</dd><dt>Registered</dt><dd>{date(company.createdAt)}</dd><dt>Verification</dt><dd>{company.isVerified ? 'Verified' : 'Pending'}</dd></dl></section></div>;
+
 const AdminCompanies = () => {
-  const [companies, setCompanies] = useState([]);
-
-  useEffect(() => {
-    adminAPI.getCompanies()
-      .then((response) => setCompanies(Array.isArray(response.data) ? response.data : response.data?.companies || []))
-      .catch(() => setCompanies([]));
-  }, []);
-
-  const handleView = (company) => {
-    toast.info(`${company.name}\n${company.industry} • ${company.email}`, {
-      autoClose: 4000,
-      pauseOnHover: true
-    });
-  };
-
-  const handleDetails = (company) => {
-    if (!company.isVerified) {
-      adminAPI.updateCompanyVerification(company._id || company.id, { isVerified: true })
-        .then((response) => {
-          const updated = response.data?.company;
-          setCompanies((prevCompanies) => prevCompanies.map((item) => item._id === company._id ? updated : item));
-          toast.success(`${company.companyName || 'Company'} has been verified.`);
-        })
-        .catch(() => toast.error('Unable to update company verification.'));
-      return;
-    }
-
-    toast.info(`${company.name}: ${company.description}`, {
-      autoClose: 6000,
-      pauseOnHover: true
-    });
-  };
-
-  return (
-    <>
-      <Navbar />
-      <div className="admin-container">
-        <div className="admin-header">
-          <h1>Manage Companies</h1>
-          <p>Review, approve, or reject company registrations and manage profiles.</p>
-        </div>
-
-        <div className="admin-table-wrapper">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Company</th>
-                <th>Email</th>
-                <th>Industry</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {companies.map((company) => (
-                <tr key={company._id || company.id}>
-                  <td>{company.companyName || 'Not available'}</td>
-                  <td>{company.email || 'Not available'}</td>
-                  <td>{company.industry || 'Not available'}</td>
-                  <td>{company.isVerified ? 'Verified' : 'Pending'}</td>
-                  <td>
-                    <button className="btn-secondary" onClick={() => handleView(company)}>
-                      View
-                    </button>
-                    <button
-                      className={company.status === 'Pending' ? 'btn-primary' : 'btn-secondary'}
-                      onClick={() => handleDetails(company)}
-                    >
-                      {!company.isVerified ? 'Verify' : 'Details'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <Footer />
-    </>
-  );
+  const [companies, setCompanies] = useState([]); const [summary, setSummary] = useState({ total: 0, pending: 0, verified: 0, rejected: 0 });
+  const [filters, setFilters] = useState({ search: '', status: '', page: 1, limit: 20 }); const [pagination, setPagination] = useState({ pages: 1 });
+  const [selected, setSelected] = useState(null); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
+  const load = useCallback(async () => { setLoading(true); setError(''); try { const [list, stats] = await Promise.all([adminAPI.getCompaniesPage(filters), adminAPI.getDashboardStats()]); const data = list.data || {}; const counts = stats.data || {}; setCompanies(data.companies || []); setPagination(data.pagination || { pages: 1 }); setSummary({ total: counts.companies || 0, pending: counts.pendingCompanies || 0, verified: counts.verifiedCompanies || 0, rejected: counts.rejectedCompanies || 0 }); } catch { setError('Unable to load company records.'); setCompanies([]); } finally { setLoading(false); } }, [filters]);
+  useEffect(() => { load(); }, [load]);
+  const verify = async (company) => { if (!window.confirm(`Verify ${company.companyName || 'this company'}?`)) return; try { await adminAPI.updateCompanyVerification(company._id, { isVerified: true }); toast.success('Company verified.'); load(); } catch { toast.error('Unable to update company verification.'); } };
+  return <><Navbar /><main className="admin-container admin-management-page"><header className="management-header"><div><p className="admin-kicker">Administration</p><h1>Companies</h1><p>Review and manage registered companies and verification status.</p></div><button className="admin-secondary-btn" onClick={load}>Refresh</button></header><div className="management-summary"><Summary label="Total Companies" value={summary.total} /><Summary label="Pending Verification" value={summary.pending} /><Summary label="Verified" value={summary.verified} /><Summary label="Rejected" value={summary.rejected} /></div><section className="admin-panel"><div className="management-toolbar"><input value={filters.search} placeholder="Search company name or email" onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })} /><select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}><option value="">All</option><option value="pending">Pending</option><option value="verified">Verified</option></select><button className="admin-secondary-btn" onClick={() => setFilters({ search: '', status: '', page: 1, limit: 20 })}>Clear filters</button></div>{loading ? <PanelState text="Loading companies..." /> : error ? <PanelState text={error} error /> : companies.length === 0 ? <PanelState text="No companies registered yet" detail="No company records are available." /> : <div className="management-table-wrap"><table className="management-table"><thead><tr><th>Company</th><th>Email</th><th>Industry</th><th>Location</th><th>Status</th><th>Registered</th><th>Actions</th></tr></thead><tbody>{companies.map((company) => <tr key={company._id}><td>{company.companyName || 'Not available'}</td><td>{company.email || 'Not available'}</td><td>{company.industry || 'Not available'}</td><td>{company.location || 'Not available'}</td><td><Status value={company.isVerified ? 'Verified' : 'Pending'} /></td><td>{date(company.createdAt)}</td><td className="management-actions"><button onClick={() => setSelected(company)}>View Details</button>{!company.isVerified && <button onClick={() => verify(company)}>Verify</button>}</td></tr>)}</tbody></table></div>}<Pagination page={filters.page} pages={pagination.pages} setPage={(page) => setFilters({ ...filters, page })} /></section></main>{selected && <CompanyDetails company={selected} close={() => setSelected(null)} />}<Footer /></>;
 };
-
 export default AdminCompanies;

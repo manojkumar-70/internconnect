@@ -1,16 +1,32 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { applicationAPI } from '../services/api';
-import { toast } from 'react-toastify';
+import { applicationAPI, studentAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import '../styles/MyApplications.css';
+
+const formatDate = (value) => {
+  if (!value) return 'Not available';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'Not available' : date.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+};
+
+const formatStatus = (value) => String(value || 'Not available')
+  .replace(/[_-]+/g, ' ')
+  .replace(/\b\w/g, (character) => character.toUpperCase());
 
 const MyApplications = () => {
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
   const [applications, setApplications] = useState([]);
+  const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const handleLogout = () => {
     logout();
@@ -23,25 +39,44 @@ const MyApplications = () => {
       return;
     }
 
-    fetchApplications();
-  }, [user]);
+    const fetchApplications = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const [applicationsResult, interviewsResult] = await Promise.allSettled([
+          applicationAPI.getStudentApplications(),
+          studentAPI.getInterviews(),
+        ]);
+        if (applicationsResult.status !== 'fulfilled') {
+          throw new Error('Applications could not be loaded');
+        }
+        const applicationData = applicationsResult.value.data;
+        const applicationRecords = Array.isArray(applicationData)
+          ? applicationData
+          : applicationData?.applications || [];
+        const interviewData = interviewsResult.status === 'fulfilled' ? interviewsResult.value.data : [];
+        const interviewRecords = Array.isArray(interviewData)
+          ? interviewData
+          : interviewData?.interviews || [];
+        setApplications(applicationRecords);
+        setInterviews(interviewRecords);
+      } catch (err) {
+        setApplications([]);
+        setInterviews([]);
+        setError('Unable to load your applications right now. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchApplications = async () => {
-    try {
-      const response = await applicationAPI.getStudentApplications();
-      setApplications(response.data);
-      setLoading(false);
-    } catch (err) {
-      toast.error('Failed to load applications');
-      setLoading(false);
-    }
-  };
+    fetchApplications();
+  }, [user, navigate]);
 
   if (loading) {
     return (
       <>
         <Navbar user={user} onLogout={handleLogout} />
-        <div className="spinner"></div>
+        <div className="applications-page-state">Loading your applications...</div>
       </>
     );
   }
@@ -49,69 +84,63 @@ const MyApplications = () => {
   return (
     <>
       <Navbar user={user} onLogout={handleLogout} />
-      <div className="container">
-        <div className="card mt-4">
-          <h2>My Applications</h2>
-
-          {applications.length === 0 ? (
-            <p className="text-center mt-4">You haven't applied to any internships yet</p>
-          ) : (
-            <div className="grid grid-1 mt-4">
-              {applications.map((app) => (
-                <div key={app._id} className="card">
-                  <h3>{app.internship?.title}</h3>
-                  <p>
-                    <strong>Company:</strong> {app.internship?.company?.companyName}
-                  </p>
-                  <p>
-                    <strong>Applied on:</strong>{' '}
-                    {new Date(app.appliedDate).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <strong>Status:</strong>{' '}
-                    <span
-                      style={{
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '0.25rem',
-                        backgroundColor:
-                          app.status === 'accepted'
-                            ? '#d1fae5'
-                            : app.status === 'pending'
-                            ? '#fef3c7'
-                            : '#fee2e2',
-                        color:
-                          app.status === 'accepted'
-                            ? '#065f46'
-                            : app.status === 'pending'
-                            ? '#92400e'
-                            : '#991b1b',
-                      }}
-                    >
-                      {app.status?.toUpperCase()}
-                    </span>
-                  </p>
-
-                  {app.rejectionReason && (
-                    <div className="alert alert-warning mt-2">
-                      <strong>Rejection Reason:</strong> {app.rejectionReason}
-                    </div>
-                  )}
-
-                  {app.rejectionRecoveryTasks?.length > 0 && (
-                    <div className="mt-2">
-                      <p>
-                        <strong>Recovery Tasks:</strong> {app.rejectionRecoveryTasks.length} task(s)
-                      </p>
-                      <a href="/tasks" className="btn btn-secondary btn-sm">
-                        View Tasks
-                      </a>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+      <div className="container applications-page">
+        <div className="applications-header">
+          <div>
+            <p className="section-tag">Student workspace</p>
+            <h1>My Applications</h1>
+            <p>Track your real internship applications and interview progress.</p>
+          </div>
+          <button type="button" className="btn btn-primary" onClick={() => navigate('/internships')}>
+            Browse Internships
+          </button>
         </div>
+
+        {error && <div className="applications-error" role="alert">{error}</div>}
+
+        {!error && applications.length === 0 ? (
+          <div className="applications-empty">
+            <h2>You haven't applied to any internships yet.</h2>
+            <p>Browse current opportunities and submit your first application.</p>
+            <button type="button" className="btn btn-primary" onClick={() => navigate('/internships')}>
+              Browse Internships
+            </button>
+          </div>
+        ) : (
+          <div className="applications-list">
+            {applications.map((application) => {
+              const interview = interviews.find((record) => String(record.application?._id || record.application) === String(application._id));
+              const internshipId = application.internship?._id;
+              return (
+                <article key={application._id} className="application-record">
+                  <div className="application-record-header">
+                    <div>
+                      <p className="application-kicker">Internship application</p>
+                      <h2>{application.internship?.title || 'Not available'}</h2>
+                      <p className="application-company">{application.internship?.company?.companyName || application.internship?.company?.name || 'Not available'}</p>
+                    </div>
+                    <span className={`application-status status-${String(application.status || 'not-available').toLowerCase()}`}>
+                      {formatStatus(application.status)}
+                    </span>
+                  </div>
+
+                  <div className="application-details">
+                    <div><span>Applied</span><strong>{formatDate(application.appliedDate)}</strong></div>
+                    <div><span>Interview</span><strong>{interview ? formatStatus(interview.type || 'Scheduled') : 'Not scheduled'}</strong></div>
+                    <div><span>Interview date</span><strong>{formatDate(interview?.scheduledAt)}</strong></div>
+                  </div>
+
+                  {application.rejectionReason && <p className="application-note"><strong>Rejection reason:</strong> {application.rejectionReason}</p>}
+
+                  <div className="application-actions">
+                    {internshipId && <button type="button" className="btn btn-secondary" onClick={() => navigate(`/internships/${internshipId}`)}>View Internship</button>}
+                    {application.rejectionRecoveryTasks?.length > 0 && <button type="button" className="btn btn-secondary" onClick={() => navigate('/student-dashboard/tasks')}>View Recovery Tasks</button>}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </div>
       <Footer />
     </>
