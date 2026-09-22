@@ -2,19 +2,33 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import '../styles/AdminPages.css';
+import { adminAPI } from '../services/api';
 
 const AdminStats = () => {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    setStats({
-      totalStudents: 824,
-      totalCompanies: 118,
-      totalInternships: 320,
-      totalApplications: 1524,
-      activePostings: 205,
-      verifiedCompanies: 94
-    });
+    Promise.all([adminAPI.getDashboardStats(), adminAPI.getApplicationStats(), adminAPI.getCompanies()])
+      .then(([dashboardResponse, applicationResponse, companiesResponse]) => {
+        const dashboard = dashboardResponse.data || {};
+        const companies = Array.isArray(companiesResponse.data) ? companiesResponse.data : [];
+        setStats({
+          totalStudents: dashboard.students || 0,
+          totalCompanies: dashboard.companies || 0,
+          totalInternships: dashboard.internships || 0,
+          totalApplications: dashboard.applications || 0,
+          activePostings: dashboard.internships || 0,
+          verifiedCompanies: companies.filter((company) => company.isVerified).length,
+        });
+      })
+      .catch(() => setStats({
+        totalStudents: 0,
+        totalCompanies: 0,
+        totalInternships: 0,
+        totalApplications: 0,
+        activePostings: 0,
+        verifiedCompanies: 0,
+      }));
   }, []);
 
   if (!stats) {

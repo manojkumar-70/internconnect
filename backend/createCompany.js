@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 const Company = require("./models/Company");
 
 async function createCompany() {
+  const requiredFields = ['COMPANY_NAME', 'COMPANY_EMAIL', 'COMPANY_PASSWORD', 'COMPANY_LEGAL_NAME', 'COMPANY_INDUSTRY', 'COMPANY_LOCATION', 'COMPANY_WEBSITE'];
+  const missingFields = requiredFields.filter((field) => !process.env[field]);
+  if (missingFields.length) {
+    throw new Error(`Set ${missingFields.join(', ')} before creating a company.`);
+  }
   try {
     // Connect to MongoDB
     await mongoose.connect("mongodb://localhost:27017/internconnect");
@@ -9,13 +14,13 @@ async function createCompany() {
     
     // Create a new company using the Company model
     const newCompany = new Company({
-      name: "Recruiter",
-      email: "recruiter@example.com",
-      password: "Password123",
-      companyName: "Tech Corp",
-      industry: "Technology",
-      location: "New York",
-      website: "https://techcorp.com"
+      name: process.env.COMPANY_NAME,
+      email: process.env.COMPANY_EMAIL,
+      password: process.env.COMPANY_PASSWORD,
+      companyName: process.env.COMPANY_LEGAL_NAME,
+      industry: process.env.COMPANY_INDUSTRY,
+      location: process.env.COMPANY_LOCATION,
+      website: process.env.COMPANY_WEBSITE
     });
     
     // Save the company (this will trigger the pre-save hook for password hashing)

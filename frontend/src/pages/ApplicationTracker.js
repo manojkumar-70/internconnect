@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { applicationAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import '../styles/ApplicationTracker.css';
@@ -11,69 +12,7 @@ const ApplicationTracker = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
 
-  // Sample application data - In production, this would come from the backend
-  const [applications] = useState([
-    {
-      _id: '1',
-      studentId: user?._id,
-      internshipTitle: 'Frontend Developer',
-      companyName: 'Tech Innovations Inc',
-      companyLogo: 'https://via.placeholder.com/60?text=TII',
-      location: 'Bangalore, India',
-      stipend: 25000,
-      applicationDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'pending',
-      progress: 30,
-    },
-    {
-      _id: '2',
-      studentId: user?._id,
-      internshipTitle: 'Full Stack Developer',
-      companyName: 'Tech Innovations Inc',
-      companyLogo: 'https://via.placeholder.com/60?text=TII',
-      location: 'Bangalore, India',
-      stipend: 38000,
-      applicationDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'accepted',
-      progress: 100,
-    },
-    {
-      _id: '3',
-      studentId: user?._id,
-      internshipTitle: 'Data Analyst',
-      companyName: 'Data Solutions Ltd',
-      companyLogo: 'https://via.placeholder.com/60?text=DSL',
-      location: 'Mumbai, India',
-      stipend: 30000,
-      applicationDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'rejected',
-      progress: 0,
-    },
-    {
-      _id: '4',
-      studentId: user?._id,
-      internshipTitle: 'Backend Engineer',
-      companyName: 'Cloud Systems Inc',
-      companyLogo: 'https://via.placeholder.com/60?text=CSI',
-      location: 'Delhi, India',
-      stipend: 32000,
-      applicationDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'interview',
-      progress: 60,
-    },
-    {
-      _id: '5',
-      studentId: user?._id,
-      internshipTitle: 'Machine Learning Intern',
-      companyName: 'Data Solutions Ltd',
-      companyLogo: 'https://via.placeholder.com/60?text=DSL',
-      location: 'Mumbai, India',
-      stipend: 40000,
-      applicationDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'pending',
-      progress: 30,
-    },
-  ]);
+  const [applications, setApplications] = useState([]);
 
   const [filteredApplications, setFilteredApplications] = useState(applications);
 
@@ -82,11 +21,25 @@ const ApplicationTracker = () => {
     navigate('/');
   };
 
-  // Check authentication on mount
   useEffect(() => {
     if (!user || user.role !== 'student') {
       navigate('/login');
+      return;
     }
+
+    applicationAPI.getStudentApplications()
+      .then((response) => {
+        const records = Array.isArray(response.data) ? response.data : response.data?.applications || [];
+        setApplications(records.map((application) => ({
+          ...application,
+          _id: application._id || application.id,
+          internshipTitle: application.internship?.title || 'Not available',
+          companyName: application.internship?.company?.companyName || 'Not available',
+          applicationDate: application.appliedDate || application.createdAt,
+          stipend: Number(application.internship?.stipend || 0),
+        })));
+      })
+      .catch(() => setApplications([]));
   }, [user, navigate]);
 
   // Filter and sort applications

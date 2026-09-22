@@ -2,34 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { adminAPI } from '../services/api';
 import '../styles/AdminPages.css';
 
 const AdminStudents = () => {
   const [students, setStudents] = useState([]);
 
   useEffect(() => {
-    setStudents([
-      { id: 1, name: 'Ananya Rao', email: 'ananya@gmail.com', college: 'IIT Delhi', status: 'Active' },
-      { id: 2, name: 'Rohan Verma', email: 'rohan@gmail.com', college: 'NIT Trichy', status: 'Active' },
-      { id: 3, name: 'Priya Patel', email: 'priya@gmail.com', college: 'BITS Pilani', status: 'Suspended' }
-    ]);
+    adminAPI.getStudents()
+      .then((response) => setStudents(Array.isArray(response.data) ? response.data : response.data?.students || []))
+      .catch(() => setStudents([]));
   }, []);
 
   const handleView = (student) => {
     toast.info(`${student.name} • ${student.college} • ${student.email}`);
-  };
-
-  const handleSuspend = (studentId) => {
-    setStudents((prevStudents) =>
-      prevStudents.map((student) => {
-        if (student.id === studentId) {
-          const newStatus = student.status === 'Suspended' ? 'Active' : 'Suspended';
-          toast.success(`${student.name} is now ${newStatus}`);
-          return { ...student, status: newStatus };
-        }
-        return student;
-      })
-    );
   };
 
   return (
@@ -54,17 +40,14 @@ const AdminStudents = () => {
             </thead>
             <tbody>
               {students.map((student) => (
-                <tr key={student.id}>
-                  <td>{student.name}</td>
-                  <td>{student.email}</td>
-                  <td>{student.college}</td>
-                  <td>{student.status}</td>
+                <tr key={student._id || student.id}>
+                  <td>{student.name || 'Not available'}</td>
+                  <td>{student.email || 'Not available'}</td>
+                  <td>{student.college || 'Not available'}</td>
+                  <td>{student.status || 'Not available'}</td>
                   <td>
                     <button className="btn-secondary" onClick={() => handleView(student)}>
                       View
-                    </button>
-                    <button className="btn-danger" onClick={() => handleSuspend(student.id)}>
-                      {student.status === 'Suspended' ? 'Revoke' : 'Suspend'}
                     </button>
                   </td>
                 </tr>

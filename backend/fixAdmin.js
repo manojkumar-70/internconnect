@@ -2,20 +2,23 @@ const mongoose = require("mongoose");
 const Admin = require("./models/Admin");
 
 async function fixAdmin() {
+  const { ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
+  if (!ADMIN_NAME || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
+    throw new Error('Set ADMIN_NAME, ADMIN_EMAIL, and ADMIN_PASSWORD before fixing an admin.');
+  }
   try {
     await mongoose.connect("mongodb://localhost:27017/internconnect");
     console.log("Connected to MongoDB");
     
-    // Delete any existing admin with email admin@example.com
-    const deleteResult = await Admin.deleteMany({ email: "admin@example.com" });
-    console.log("\nDeleted " + deleteResult.deletedCount + " existing admin(s) with email admin@example.com");
+    const deleteResult = await Admin.deleteMany({ email: ADMIN_EMAIL });
+    console.log("\nDeleted " + deleteResult.deletedCount + " existing admin(s) with the requested email");
     
     // Create a NEW admin using the Admin model
     // The pre-save hook in the model will automatically hash the password
     const newAdmin = new Admin({
-      name: "Admin",
-      email: "admin@example.com",
-      password: "Admin123456",  // Plain text password - will be hashed by pre-save hook
+      name: ADMIN_NAME,
+      email: ADMIN_EMAIL,
+      password: ADMIN_PASSWORD,
       role: "admin"
     });
     

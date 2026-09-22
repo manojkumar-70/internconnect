@@ -8,6 +8,7 @@ router.get('/students', auth, adminAuth, adminController.manageStudents);
 router.delete('/students/:studentId', auth, adminAuth, adminController.removeStudent);
 router.get('/companies', auth, adminAuth, adminController.manageCompanies);
 router.put('/companies/:companyId/verify', auth, adminAuth, adminController.updateCompanyVerification);
+router.get('/applications', auth, adminAuth, adminController.manageApplications);
 router.get('/applications/stats', auth, adminAuth, adminController.getApplicationStats);
 
 module.exports = router;

@@ -10,7 +10,7 @@
   justify-content: center;
   overflow: hidden;
   padding: 80px 2rem 2rem;
-  background: #ffffff;
+  background: #0f172a;
 }
 
 /* Animated Background */
@@ -27,25 +27,25 @@
 /* Gradient Blobs */
 .gradient-blob {
   position: absolute;
-  opacity: 0.5;
-  filter: blur(60px);
+  opacity: 0.35;
+  filter: blur(48px);
   border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
   animation: blobMotion 8s ease-in-out infinite;
 }
 
 .blob-1 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  width: 420px;
+  height: 420px;
+  background: linear-gradient(135deg, rgba(75, 94, 113, 0.35) 0%, rgba(43, 56, 78, 0.15) 100%);
   top: -100px;
   right: -50px;
   animation-delay: 0s;
 }
 
 .blob-2 {
-  width: 350px;
-  height: 350px;
-  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  width: 360px;
+  height: 360px;
+  background: linear-gradient(135deg, rgba(91, 112, 131, 0.35) 0%, rgba(33, 42, 58, 0.18) 100%);
   bottom: 50px;
   left: -80px;
   animation-delay: 2s;
@@ -53,9 +53,9 @@
 }
 
 .blob-3 {
-  width: 300px;
-  height: 300px;
-  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  width: 320px;
+  height: 320px;
+  background: linear-gradient(135deg, rgba(75, 94, 113, 0.22) 0%, rgba(47, 60, 78, 0.2) 100%);
   top: 50%;
   right: 5%;
   animation-delay: 4s;
@@ -160,10 +160,7 @@
 .badge-text {
   font-size: 0.9rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #2563eb 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #cbd5e1;
 }
 
 @keyframes fadeInDown {
@@ -183,13 +180,13 @@
   font-weight: 900;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: #1f2937;
+  color: #f8fafc;
   margin: 0;
   animation: slideInLeft 0.8s ease-out 0.1s both;
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #2563eb 0%, #06b6d4 50%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #5b7083 0%, #4b5e71 50%, #334154 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -200,7 +197,7 @@
 .hero-subtitle {
   font-size: clamp(1rem, 2.5vw, 1.25rem);
   line-height: 1.8;
-  color: #6b7280;
+  color: #cbd5e1;
   margin: 0;
   max-width: 500px;
   animation: slideInLeft 0.8s ease-out 0.2s both;
@@ -217,8 +214,8 @@
 
 .stat-card {
   padding: 1.5rem;
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(168, 85, 247, 0.05));
-  border: 1px solid rgba(37, 99, 235, 0.1);
+  background: #111827;
+  border: 1px solid #334155;
   border-radius: 12px;
   text-align: center;
   backdrop-filter: blur(10px);
@@ -226,24 +223,21 @@
 }
 
 .stat-card:hover {
-  border-color: rgba(37, 99, 235, 0.2);
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(168, 85, 247, 0.1));
+  border-color: #5b7083;
+  background: #1f2937;
   transform: translateY(-5px);
 }
 
 .stat-number {
   font-size: clamp(1.5rem, 3vw, 2.25rem);
   font-weight: 900;
-  background: linear-gradient(135deg, #2563eb 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #e2e8f0;
   margin: 0;
 }
 
 .stat-label {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: #94a3b8;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -295,14 +289,14 @@
 
 /* Primary Button */
 .btn-primary {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #4b5e71 0%, #334154 100%);
   color: white;
-  box-shadow: 0 15px 35px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 15px 35px rgba(43, 56, 78, 0.4);
 }
 
 .btn-primary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 25px 50px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 25px 50px rgba(43, 56, 78, 0.45);
 }
 
 .btn-primary:active {
@@ -312,17 +306,17 @@
 /* Secondary Button */
 .btn-secondary {
   background: transparent;
-  color: #2563eb;
-  border: 2px solid #2563eb;
-  box-shadow: 0 0 20px rgba(37, 99, 235, 0.1);
+  color: #cbd5e1;
+  border: 2px solid #334155;
+  box-shadow: 0 0 20px rgba(43, 56, 78, 0.12);
 }
 
 .btn-secondary:hover {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(168, 85, 247, 0.1));
-  border-color: #8b5cf6;
-  color: #8b5cf6;
+  background: rgba(75, 94, 113, 0.16);
+  border-color: #5b7083;
+  color: #e2e8f0;
   transform: translateY(-3px);
-  box-shadow: 0 15px 35px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 15px 35px rgba(43, 56, 78, 0.25);
 }
 
 .btn-icon {

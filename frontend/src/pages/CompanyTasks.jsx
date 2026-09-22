@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { taskAPI } from '../services/api';
 import '../styles/CompanyPages.css';
 
 function CompanyTasks() {
@@ -8,36 +9,20 @@ function CompanyTasks() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const mockTasks = [
-      {
-        id: 201,
-        title: 'Resume Review Task',
-        dueDate: '2026-05-28',
-        status: 'Open',
-        description: 'Review incoming applicant resumes for front-end internships.'
-      },
-      {
-        id: 202,
-        title: 'Interview Prep Session',
-        dueDate: '2026-06-02',
-        status: 'Scheduled',
-        description: 'Prepare shortlisted candidates for technical interview rounds.'
-      }
-    ];
-
-    setTasks(mockTasks);
-    setLoading(false);
+    taskAPI.getAll({})
+      .then((response) => {
+        const records = Array.isArray(response.data) ? response.data : response.data?.tasks || [];
+        setTasks(records.map((task) => ({
+          ...task,
+          id: task._id || task.id,
+          dueDate: task.dueDate || 'Not available',
+          status: task.status || 'Not available',
+          description: task.description || 'Not available',
+        })));
+      })
+      .catch(() => setTasks([]))
+      .finally(() => setLoading(false));
   }, []);
-
-  const handleCreateTask = () => {
-    setTasks([...tasks, {
-      id: tasks.length + 203,
-      title: 'New Recovery Task',
-      dueDate: '2026-06-10',
-      status: 'Open',
-      description: 'This is a placeholder recovery task. Fill details later.'
-    }]);
-  };
 
   if (loading) {
     return <div className="loading">Loading...</div>;
@@ -49,9 +34,6 @@ function CompanyTasks() {
       <div className="company-container">
         <div className="page-header">
           <h1>Recovery Tasks</h1>
-          <button className="btn-primary" onClick={handleCreateTask}>
-            + Create Task
-          </button>
         </div>
 
         <div className="tasks-grid">

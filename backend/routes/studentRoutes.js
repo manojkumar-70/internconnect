@@ -8,5 +8,6 @@ router.put('/profile', auth, studentController.updateStudentProfile);
 router.get('/all', auth, studentController.getAllStudents);
 router.get('/search', auth, studentController.searchStudentsBySkills);
 router.get('/applications', auth, studentController.getStudentApplications);
+router.get('/interviews', auth, studentController.getStudentInterviews);
 
 module.exports = router;

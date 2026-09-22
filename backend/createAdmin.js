@@ -2,6 +2,10 @@ const { MongoClient } = require('mongodb');
 const bcrypt = require('bcryptjs');
 
 async function createAdmin() {
+  const { ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
+  if (!ADMIN_NAME || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
+    throw new Error('Set ADMIN_NAME, ADMIN_EMAIL, and ADMIN_PASSWORD before creating an admin.');
+  }
   const client = new MongoClient('mongodb://localhost:27017');
   
   try {
@@ -13,12 +17,12 @@ async function createAdmin() {
     
     // Hash the password
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('Admin123456', salt);
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, salt);
     
     // Create admin document
     const adminDoc = {
-      name: 'Admin',
-      email: 'admin@example.com',
+      name: ADMIN_NAME,
+      email: ADMIN_EMAIL,
       password: hashedPassword,
       role: 'admin',
       createdAt: new Date()
@@ -29,7 +33,7 @@ async function createAdmin() {
     
     console.log('\n=== Admin Created Successfully ===');
     console.log('Admin ID: ' + result.insertedId);
-    console.log('Email: admin@example.com');
+    console.log('Email: ' + ADMIN_EMAIL);
     console.log('Role: admin');
     console.log('Created At: ' + adminDoc.createdAt);
     

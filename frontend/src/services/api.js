@@ -58,6 +58,7 @@ export const authAPI = {
 // Student API
 export const studentAPI = {
   getProfile: () => api.get('/students/profile'),
+  getInterviews: () => api.get('/students/interviews'),
   updateProfile: (data) => api.put('/students/profile', data),
   searchBySkills: (skills) => api.get('/students/search', { params: { skills } }),
   getApplications: () => api.get('/students/applications'),
@@ -123,6 +124,7 @@ export const adminAPI = {
   updateCompanyVerification: (id, data) =>
     api.put(`/admin/companies/${id}/verify`, data),
   getApplicationStats: () => api.get('/admin/applications/stats'),
+  getApplications: () => api.get('/admin/applications'),
 };
 
 export default api;

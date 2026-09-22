@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { applicationAPI, companyAPI } from '../services/api';
 import '../styles/CompanyPages.css';
 
 function CompanyApplications() {
@@ -11,38 +12,32 @@ function CompanyApplications() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const mockApplications = [
-      {
-        id: 101,
-        applicantName: 'Arjun Mehta',
-        internshipTitle: 'Frontend Developer Intern',
-        status: 'Shortlisted',
-        appliedDate: '2026-05-16',
-        experience: '2 months internship at a startup',
-        skills: ['React', 'CSS', 'JavaScript']
-      },
-      {
-        id: 102,
-        applicantName: 'Nisha Patel',
-        internshipTitle: 'Backend Engineer Intern',
-        status: 'Interview Scheduled',
-        appliedDate: '2026-05-15',
-        experience: 'Database internship at a tech firm',
-        skills: ['Node.js', 'MongoDB', 'Express']
-      },
-      {
-        id: 103,
-        applicantName: 'Rahul Singh',
-        internshipTitle: 'Data Analyst Intern',
-        status: 'New',
-        appliedDate: '2026-05-17',
-        experience: 'Data science coursework and campus projects',
-        skills: ['SQL', 'Python', 'Excel']
-      }
-    ];
-
-    setApplications(mockApplications);
-    setLoading(false);
+    companyAPI.getInternships()
+      .then(async (internshipResponse) => {
+        const internships = Array.isArray(internshipResponse.data)
+          ? internshipResponse.data
+          : internshipResponse.data?.internships || [];
+        const responses = await Promise.all(
+          internships
+            .map((internship) => internship._id || internship.id)
+            .filter(Boolean)
+            .map((internshipId) => applicationAPI.getInternshipApplications(internshipId))
+        );
+        setApplications(responses.flatMap((response) => {
+          const records = Array.isArray(response.data) ? response.data : response.data?.applications || [];
+          return records.map((application) => ({
+            ...application,
+            id: application._id || application.id,
+            applicantName: application.student?.name || 'Not available',
+            internshipTitle: application.internship?.title || 'Not available',
+            appliedDate: application.appliedDate || application.createdAt || 'Not available',
+            experience: application.student?.bio || 'Not available',
+            skills: application.student?.skills || [],
+          }));
+        }));
+      })
+      .catch(() => setApplications([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleStatusChange = (id) => {

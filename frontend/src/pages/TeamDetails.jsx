@@ -1,21 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import '../styles/CompanyPages.css';
+import { teamAPI } from '../services/api';
 
 const TeamDetails = () => {
   const navigate = useNavigate();
   const { teamId } = useParams();
   const location = useLocation();
-  const team = location.state?.team || {
-    id: teamId,
-    name: `Team ${teamId}`,
-    description: 'No description provided.',
-    members: [],
-    skills: [],
-    projectStatus: 'Unknown',
-  };
+  const [team, setTeam] = useState(location.state?.team || null);
+
+  useEffect(() => {
+    if (team) return;
+    teamAPI.getCompanyTeams()
+      .then((response) => {
+        const teams = Array.isArray(response.data) ? response.data : response.data?.teams || [];
+        setTeam(teams.find((item) => String(item._id || item.id) === String(teamId)) || null);
+      })
+      .catch(() => setTeam(null));
+  }, [team, teamId]);
+
+  if (!team) {
+    return <div className="company-page"><Navbar /><div className="company-container"><p>No data yet</p></div><Footer /></div>;
+  }
 
   return (
     <div className="company-page">
@@ -36,7 +44,7 @@ const TeamDetails = () => {
 
           <section style={{ margin: '1rem 0' }}>
             <strong>Description</strong>
-            <p style={{ marginTop: 6 }}>{team.description}</p>
+            <p style={{ marginTop: 6 }}>{team.description || 'Not available'}</p>
           </section>
 
           <section style={{ margin: '1rem 0' }}>
@@ -58,7 +66,7 @@ const TeamDetails = () => {
                   <span key={i} style={{ background: '#eef2ff', color: '#3730a3', padding: '6px 10px', borderRadius: 999 }}>{s}</span>
                 ))
               ) : (
-                <span style={{ color: '#6b7280' }}>No skills listed</span>
+                <span style={{ color: '#6b7280' }}>No data yet</span>
               )}
             </div>
           </section>
@@ -66,7 +74,7 @@ const TeamDetails = () => {
           <section style={{ margin: '1rem 0' }}>
             <strong>Project Status</strong>
             <div style={{ marginTop: 6 }}>
-              <span className={`status ${String(team.projectStatus).toLowerCase().replace(/\s+/g,'-')}`}>{team.projectStatus}</span>
+              <span className={`status ${String(team.status || 'not-available').toLowerCase().replace(/\s+/g,'-')}`}>{team.status || 'Not available'}</span>
             </div>
           </section>
 

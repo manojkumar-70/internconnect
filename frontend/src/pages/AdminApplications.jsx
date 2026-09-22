@@ -2,49 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { adminAPI } from '../services/api';
 import '../styles/AdminPages.css';
 
 const AdminApplications = () => {
   const [applications, setApplications] = useState([]);
 
   useEffect(() => {
-    setApplications([
-      {
-        id: 1,
-        student: 'Arjun Mehta',
-        internship: 'Frontend Developer Intern',
-        company: 'Tech Company',
-        status: 'Pending',
-        summary: 'Strong React skills with UI experience.',
-        submittedOn: '2026-05-16',
-        message: 'I am eager to contribute to frontend design and build polished user experiences.'
-      },
-      {
-        id: 2,
-        student: 'Nisha Patel',
-        internship: 'Data Analyst Intern',
-        company: 'Growth Labs',
-        status: 'Reviewed',
-        summary: 'SQL and Excel expert with analytics coursework.',
-        submittedOn: '2026-05-15',
-        message: 'I have completed multiple data science projects and can help generate actionable insights.'
-      },
-      {
-        id: 3,
-        student: 'Rahul Singh',
-        internship: 'DevOps Engineer Intern',
-        company: 'Urban Travel',
-        status: 'Accepted',
-        summary: 'Hands-on with CI/CD pipelines and cloud automation.',
-        submittedOn: '2026-05-17',
-        message: 'I enjoy optimizing workflows and automating deployment processes for fast-moving teams.'
-      }
-    ]);
+    adminAPI.getApplications()
+      .then((response) => setApplications(Array.isArray(response.data) ? response.data : response.data?.applications || []))
+      .catch(() => setApplications([]));
   }, []);
 
   const handleDetails = (app) => {
     toast.info(
-      `${app.student} applied for ${app.internship} at ${app.company}\nStatus: ${app.status}\nSubmitted: ${app.submittedOn}\nSummary: ${app.summary}\nMessage: ${app.message}`,
+      `${app.student?.name || 'Not available'} applied for ${app.internship?.title || 'Not available'} at ${app.internship?.company?.companyName || 'Not available'}\nStatus: ${app.status || 'Not available'}\nSubmitted: ${app.appliedDate || 'Not available'}\nMessage: ${app.coverLetter || 'Not available'}`,
       { autoClose: 7000, pauseOnHover: true }
     );
   };
@@ -71,11 +43,11 @@ const AdminApplications = () => {
             </thead>
             <tbody>
               {applications.map((app) => (
-                <tr key={app.id}>
-                  <td>{app.student}</td>
-                  <td>{app.internship}</td>
-                  <td>{app.company}</td>
-                  <td>{app.status}</td>
+                <tr key={app._id || app.id}>
+                  <td>{app.student?.name || 'Not available'}</td>
+                  <td>{app.internship?.title || 'Not available'}</td>
+                  <td>{app.internship?.company?.companyName || 'Not available'}</td>
+                  <td>{app.status || 'Not available'}</td>
                   <td>
                     <button className="btn-secondary" onClick={() => handleDetails(app)}>
                       Details

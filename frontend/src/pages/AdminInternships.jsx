@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { internshipAPI } from '../services/api';
 import '../styles/AdminPages.css';
 
 const AdminInternships = () => {
   const [internships, setInternships] = useState([]);
 
   useEffect(() => {
-    setInternships([
-      { id: 1, title: 'Frontend Developer Intern', company: 'Tech Company', location: 'Bangalore', applicants: 12, status: 'Active' },
-      { id: 2, title: 'Data Analyst Intern', company: 'Growth Labs', location: 'Mumbai', applicants: 9, status: 'Closed' },
-      { id: 3, title: 'DevOps Engineer Intern', company: 'Urban Travel', location: 'Hyderabad', applicants: 6, status: 'Active' }
-    ]);
+    internshipAPI.getAll({})
+      .then((response) => setInternships(Array.isArray(response.data) ? response.data : response.data?.internships || []))
+      .catch(() => setInternships([]));
   }, []);
 
   return (
@@ -37,12 +36,12 @@ const AdminInternships = () => {
             </thead>
             <tbody>
               {internships.map(job => (
-                <tr key={job.id}>
-                  <td>{job.title}</td>
-                  <td>{job.company}</td>
-                  <td>{job.location}</td>
-                  <td>{job.applicants}</td>
-                  <td>{job.status}</td>
+                <tr key={job._id || job.id}>
+                  <td>{job.title || 'Not available'}</td>
+                  <td>{job.company?.companyName || job.companyName || 'Not available'}</td>
+                  <td>{job.location || 'Not available'}</td>
+                  <td>{job.applicants?.length || job.applicants || 0}</td>
+                  <td>{job.status || 'Not available'}</td>
                   <td>
                     <button className="btn-secondary">View</button>
                     <button className="btn-danger">Archive</button>

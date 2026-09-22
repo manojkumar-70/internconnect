@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { companyAPI } from '../services/api';
 import '../styles/CompanyPages.css';
 
 function CompanyInternships() {
@@ -11,42 +12,20 @@ function CompanyInternships() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch company's internships
-    const mockInternships = [
-      {
-        id: 1,
-        title: 'Frontend Developer Intern',
-        location: 'Bangalore',
-        stipend: 25000,
-        duration: '3 months',
-        status: 'Active',
-        applicants: 12,
-        postedDate: '2026-05-15'
-      },
-      {
-        id: 2,
-        title: 'Backend Engineer Intern',
-        location: 'Bangalore',
-        stipend: 32000,
-        duration: '3 months',
-        status: 'Active',
-        applicants: 8,
-        postedDate: '2026-05-10'
-      },
-      {
-        id: 3,
-        title: 'Data Analyst Intern',
-        location: 'Mumbai',
-        stipend: 30000,
-        duration: '2 months',
-        status: 'Closed',
-        applicants: 15,
-        postedDate: '2026-04-20'
-      }
-    ];
-    
-    setInternships(mockInternships);
-    setLoading(false);
+    companyAPI.getInternships()
+      .then((response) => {
+        const records = Array.isArray(response.data) ? response.data : response.data?.internships || [];
+        setInternships(records.map((internship) => ({
+          ...internship,
+          id: internship._id || internship.id,
+          status: internship.status || 'Not available',
+          stipend: Number(internship.stipend || 0),
+          applicants: internship.applicants?.length || internship.applicants || 0,
+          postedDate: internship.postedDate || internship.createdAt || 'Not available',
+        })));
+      })
+      .catch(() => setInternships([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleEdit = (id) => {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { teamAPI } from '../services/api';
 import '../styles/CompanyPages.css';
 
 function CompanyTeams() {
@@ -14,29 +15,17 @@ function CompanyTeams() {
   };
 
   useEffect(() => {
-    const mockTeams = [
-      {
-        id: 1,
-        name: 'Frontend Squad',
-        description: 'Focused on user interfaces, component libraries and design systems.',
-        members: ['Alice Johnson', 'Bob Lee', 'Carla Gomez'],
-        skills: ['React', 'TypeScript', 'CSS'],
-        projectStatus: 'Active',
-        lastUpdated: '2026-05-10'
-      },
-      {
-        id: 2,
-        name: 'Backend Crew',
-        description: 'Builds APIs, manages databases and authentication flows.',
-        members: ['David Kim', 'Eva Brown', 'Frank Miller'],
-        skills: ['Node.js', 'Express', 'MongoDB'],
-        projectStatus: 'Planning',
-        lastUpdated: '2026-05-12'
-      }
-    ];
-
-    setTeams(mockTeams);
-    setLoading(false);
+    teamAPI.getCompanyTeams()
+      .then((response) => {
+        const records = Array.isArray(response.data) ? response.data : response.data?.teams || [];
+        setTeams(records.map((team) => ({
+          ...team,
+          id: team._id || team.id,
+          lastUpdated: team.updatedAt || team.createdAt || 'Not available',
+        })));
+      })
+      .catch(() => setTeams([]))
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
@@ -66,9 +55,9 @@ function CompanyTeams() {
             >
               <div className="card-header">
                 <h3>{team.name}</h3>
-                <span className="members-count">{team.members} members</span>
+                <span className="members-count">{team.members?.length || 0} members</span>
               </div>
-              <p>{team.focus}</p>
+              <p>{team.description || 'Not available'}</p>
               <div className="info-row">
                 <span className="label">Last Updated:</span>
                 <span className="value">{team.lastUpdated}</span>

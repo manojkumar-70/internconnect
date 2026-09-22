@@ -2,38 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { adminAPI } from '../services/api';
 import '../styles/AdminPages.css';
 
 const AdminCompanies = () => {
   const [companies, setCompanies] = useState([]);
 
   useEffect(() => {
-    setCompanies([
-      {
-        id: 1,
-        name: 'Tech Company',
-        email: 'hr@techcompany.com',
-        industry: 'Technology',
-        status: 'Verified',
-        description: 'A leading software solutions provider focusing on scalable web applications and product engineering.'
-      },
-      {
-        id: 2,
-        name: 'Growth Labs',
-        email: 'info@growthlabs.com',
-        industry: 'Education',
-        status: 'Pending',
-        description: 'An edtech startup helping students gain real-world skills through mentorship and career workshops.'
-      },
-      {
-        id: 3,
-        name: 'Urban Travel',
-        email: 'careers@urbantravel.com',
-        industry: 'Travel',
-        status: 'Verified',
-        description: 'A travel-focused marketplace connecting interns with hospitality and tourism companies across India.'
-      }
-    ]);
+    adminAPI.getCompanies()
+      .then((response) => setCompanies(Array.isArray(response.data) ? response.data : response.data?.companies || []))
+      .catch(() => setCompanies([]));
   }, []);
 
   const handleView = (company) => {
@@ -44,13 +22,14 @@ const AdminCompanies = () => {
   };
 
   const handleDetails = (company) => {
-    if (company.status === 'Pending') {
-      setCompanies((prevCompanies) =>
-        prevCompanies.map((item) =>
-          item.id === company.id ? { ...item, status: 'Verified' } : item
-        )
-      );
-      toast.success(`${company.name} has been verified.`);
+    if (!company.isVerified) {
+      adminAPI.updateCompanyVerification(company._id || company.id, { isVerified: true })
+        .then((response) => {
+          const updated = response.data?.company;
+          setCompanies((prevCompanies) => prevCompanies.map((item) => item._id === company._id ? updated : item));
+          toast.success(`${company.companyName || 'Company'} has been verified.`);
+        })
+        .catch(() => toast.error('Unable to update company verification.'));
       return;
     }
 
@@ -82,11 +61,11 @@ const AdminCompanies = () => {
             </thead>
             <tbody>
               {companies.map((company) => (
-                <tr key={company.id}>
-                  <td>{company.name}</td>
-                  <td>{company.email}</td>
-                  <td>{company.industry}</td>
-                  <td>{company.status}</td>
+                <tr key={company._id || company.id}>
+                  <td>{company.companyName || 'Not available'}</td>
+                  <td>{company.email || 'Not available'}</td>
+                  <td>{company.industry || 'Not available'}</td>
+                  <td>{company.isVerified ? 'Verified' : 'Pending'}</td>
                   <td>
                     <button className="btn-secondary" onClick={() => handleView(company)}>
                       View
@@ -95,7 +74,7 @@ const AdminCompanies = () => {
                       className={company.status === 'Pending' ? 'btn-primary' : 'btn-secondary'}
                       onClick={() => handleDetails(company)}
                     >
-                      {company.status === 'Pending' ? 'Verify' : 'Details'}
+                      {!company.isVerified ? 'Verify' : 'Details'}
                     </button>
                   </td>
                 </tr>

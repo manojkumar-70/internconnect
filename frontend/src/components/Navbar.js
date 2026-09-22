@@ -12,14 +12,17 @@ const Navbar = ({ user, onLogout }) => {
     setIsMenuOpen(false);
   };
 
+  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
+  const userRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User';
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
         <a href="/" className="navbar-brand" onClick={closeMenu}>
-          🚀 InternConnect
+          <span className="brand-mark">I</span>
+          <span className="brand-text">InternConnect</span>
         </a>
 
-        {/* Hamburger Menu Icon */}
         <button
           className={`hamburger ${isMenuOpen ? 'active' : ''}`}
           onClick={toggleMenu}
@@ -30,17 +33,12 @@ const Navbar = ({ user, onLogout }) => {
           <span></span>
         </button>
 
-        {/* Navbar Links */}
         <ul className={`navbar-links ${isMenuOpen ? 'active' : ''}`}>
           <li>
-            <a href="/" onClick={closeMenu}>
-              Home
-            </a>
+            <a href="/" onClick={closeMenu}>Home</a>
           </li>
           <li>
-            <a href="/internships" onClick={closeMenu}>
-              Internships
-            </a>
+            <a href="/internships" onClick={closeMenu}>Internships</a>
           </li>
 
           {user ? (
@@ -48,38 +46,39 @@ const Navbar = ({ user, onLogout }) => {
               {user.role === 'student' && (
                 <>
                   <li>
-                    <a href="/student-dashboard" onClick={closeMenu}>
-                      Dashboard
-                    </a>
+                    <a href="/student-dashboard" onClick={closeMenu}>Dashboard</a>
                   </li>
                   <li>
-                    <a href="/student/profile" onClick={closeMenu}>
-                      Profile
-                    </a>
+                    <a href="/student/profile" onClick={closeMenu}>Profile</a>
                   </li>
                 </>
               )}
               {user.role === 'company' && (
                 <>
                   <li>
-                    <a href="/company-dashboard" onClick={closeMenu}>
-                      Dashboard
-                    </a>
+                    <a href="/company-dashboard" onClick={closeMenu}>Dashboard</a>
                   </li>
                   <li>
-                    <a href="/company/profile" onClick={closeMenu}>
-                      Profile
-                    </a>
+                    <a href="/company/profile" onClick={closeMenu}>Profile</a>
                   </li>
                 </>
               )}
               {user.role === 'admin' && (
                 <li>
-                  <a href="/admin-dashboard" onClick={closeMenu}>
-                    Admin
-                  </a>
+                  <a href="/admin-dashboard" onClick={closeMenu}>Admin</a>
                 </li>
               )}
+
+              <li className="navbar-user-wrap">
+                <div className="navbar-user" aria-label="User account area">
+                  <div className="user-avatar">{userInitial}</div>
+                  <div className="user-meta">
+                    <span className="user-name">{user.name || 'User'}</span>
+                    <span className="user-role">{userRole}</span>
+                  </div>
+                </div>
+              </li>
+
               <li>
                 <button
                   onClick={() => {
@@ -95,14 +94,10 @@ const Navbar = ({ user, onLogout }) => {
           ) : (
             <>
               <li>
-                <a href="/login" onClick={closeMenu}>
-                  Login
-                </a>
+                <a href="/login" onClick={closeMenu}>Login</a>
               </li>
               <li>
-                <a href="/register" className="btn-register" onClick={closeMenu}>
-                  Register
-                </a>
+                <a href="/register" className="btn-register" onClick={closeMenu}>Register</a>
               </li>
             </>
           )}

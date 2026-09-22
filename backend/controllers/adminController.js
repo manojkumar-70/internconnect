@@ -87,6 +87,23 @@ const getApplicationStats = async (req, res) => {
   }
 };
 
+// Get applications for administration
+const manageApplications = async (req, res) => {
+  try {
+    const applications = await Application.find()
+      .populate('student', 'name email college skills bio')
+      .populate({
+        path: 'internship',
+        select: 'title company location',
+        populate: { path: 'company', select: 'companyName email' },
+      })
+      .sort({ appliedDate: -1 });
+    res.json(applications);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching applications', error: err.message });
+  }
+};
+
 module.exports = {
   getDashboardStats,
   manageStudents,
@@ -94,4 +111,5 @@ module.exports = {
   manageCompanies,
   updateCompanyVerification,
   getApplicationStats,
+  manageApplications,
 };

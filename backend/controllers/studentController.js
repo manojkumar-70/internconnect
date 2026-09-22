@@ -1,4 +1,5 @@
 const Student = require('../models/Student');
+const Interview = require('../models/Interview');
 
 // Get student profile
 const getStudentProfile = async (req, res) => {
@@ -32,7 +33,7 @@ const updateStudentProfile = async (req, res) => {
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     if (bio !== undefined) updateData.bio = bio;
-    if (interests !== undefined) updateData.bio = interests;
+    if (interests !== undefined) updateData.interests = interests;
     if (skills !== undefined) updateData.skills = Array.isArray(skills)
       ? skills
       : typeof skills === 'string' && skills.length
@@ -93,10 +94,25 @@ const getStudentApplications = async (req, res) => {
   }
 };
 
+const getStudentInterviews = async (req, res) => {
+  try {
+    const interviews = await Interview.find({ student: req.userId })
+      .populate({
+        path: 'application',
+        populate: { path: 'internship', select: 'title company' },
+      })
+      .sort({ scheduledAt: 1 });
+    res.json(interviews);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching interviews', error: err.message });
+  }
+};
+
 module.exports = {
   getStudentProfile,
   updateStudentProfile,
   getAllStudents,
   searchStudentsBySkills,
   getStudentApplications,
+  getStudentInterviews,
 };
