@@ -37,7 +37,7 @@ app.use((req, res, next) => {
 // Connect to MongoDB
 const startServer = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/internconnect', {
+    await mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
