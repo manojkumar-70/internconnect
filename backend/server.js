@@ -6,14 +6,31 @@ const compression = require('compression');
 require('dotenv').config();
 
 const app = express();
-const allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+const allowedOrigins = [
+  'https://internconnect-topaz.vercel.app',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
+
+const isAllowedOrigin = (origin) => {
+  if (allowedOrigins.includes(origin)) {
+    return true;
+  }
+
+  try {
+    const { hostname, protocol } = new URL(origin);
+    return protocol === 'https:' && /^internconnect-topaz(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(hostname);
+  } catch {
+    return false;
+  }
+};
 
 // Middleware
 app.use(helmet());
 app.use(compression());
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -37,10 +54,12 @@ app.use((req, res, next) => {
 // Connect to MongoDB
 const startServer = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    if (!mongoUri) {
+      throw new Error('MongoDB connection URI is missing. Set MONGO_URI or MONGODB_URI.');
+    }
+
+    await mongoose.connect(mongoUri);
     console.log('MongoDB connected');
 
     // Routes
