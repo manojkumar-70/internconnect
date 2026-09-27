@@ -10,7 +10,7 @@ Internship platform with Admin, Student, and Company portals built using React, 
 - Student internship applications
 - Company application management
 - Backend API integration
-- MongoDB database integration
+- MongoDB database integrations
 - 
 ## Project Status
 
