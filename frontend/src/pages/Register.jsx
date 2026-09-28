@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { authAPI } from '../services/api';
+import { FiArrowRight, FiEye, FiEyeOff } from 'react-icons/fi';
 import '../styles/Auth.css';
 
 const Register = () => {
@@ -168,19 +169,58 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-container">
-      {/* Form Section - Left */}
-      <div className="auth-form-section">
-        <div className="auth-form-wrapper">
-          <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Join InternConnect and start your internship journey today.</p>
+    <div className="auth-page register-page">
+      <div className="auth-wrapper">
+        <section className="auth-promo-section" aria-label="About InternConnect">
+          <div className="brand-panel">
+            <Link to="/" className="brand-lockup" aria-label="InternConnect home">
+              <span className="brand-mark"><FiArrowRight aria-hidden="true" /></span>
+              <span>InternConnect</span>
+            </Link>
+            <div className="brand-message">
+              <span className="brand-eyebrow">Make your next move</span>
+              <h1>Start with a connection.</h1>
+              <p>Bring your goals into focus and take the first step toward meaningful work.</p>
+            </div>
+            <div className="career-visual" aria-hidden="true">
+              <div className="visual-grid" />
+              <div className="visual-track visual-track-one" />
+              <div className="visual-track visual-track-two" />
+              <div className="visual-node visual-node-start"><span /></div>
+              <div className="visual-node visual-node-middle"><span /></div>
+              <div className="visual-node visual-node-end"><span /></div>
+              <div className="visual-label visual-label-start">Skills</div>
+              <div className="visual-label visual-label-middle">Experience</div>
+              <div className="visual-label visual-label-end">Opportunity</div>
+              <div className="visual-coordinate">IC / 01</div>
+            </div>
+            <div className="brand-panel-footer">
+              <span>Internships with direction.</span>
+              <span className="brand-footer-line" />
+            </div>
+          </div>
+        </section>
+
+        <section className="auth-form-section">
+          <div className="auth-card register-card">
+            <Link to="/" className="mobile-brand-lockup" aria-label="InternConnect home">
+              <span className="brand-mark"><FiArrowRight aria-hidden="true" /></span>
+              <span>InternConnect</span>
+            </Link>
+            <div className="auth-header">
+              <span className="auth-kicker">JOIN INTERNCONNECT</span>
+              <h2>Create your account</h2>
+              <p>Set up your profile to find your next opportunity.</p>
+            </div>
 
           {/* Role Selector */}
-          <div className="role-selector">
+          <div className="role-selector" role="tablist" aria-label="Choose account type">
             <button
               type="button"
               className={`role-btn ${userType === 'student' ? 'active' : ''}`}
               onClick={() => setUserType('student')}
+              role="tab"
+              aria-selected={userType === 'student'}
             >
               Student
             </button>
@@ -188,13 +228,15 @@ const Register = () => {
               type="button"
               className={`role-btn ${userType === 'company' ? 'active' : ''}`}
               onClick={() => setUserType('company')}
+              role="tab"
+              aria-selected={userType === 'company'}
             >
               Company
             </button>
           </div>
 
           {/* Registration Form */}
-          <form onSubmit={handleSubmit}>
+          <form className="register-form" onSubmit={handleSubmit}>
             {/* Name Field */}
             <div className="form-group">
               <label>{userType === 'student' ? 'Full Name' : 'Company Name'}</label>
@@ -253,8 +295,10 @@ const Register = () => {
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label="Toggle password visibility"
+                  aria-pressed={showPassword}
                 >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                  {showPassword ? <FiEyeOff aria-hidden="true" /> : <FiEye aria-hidden="true" />}
                 </button>
               </div>
               {errors.password && (
@@ -280,8 +324,10 @@ const Register = () => {
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label="Toggle confirm password visibility"
+                  aria-pressed={showConfirmPassword}
                 >
-                  {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                  {showConfirmPassword ? <FiEyeOff aria-hidden="true" /> : <FiEye aria-hidden="true" />}
                 </button>
               </div>
               {errors.confirmPassword && (
@@ -418,19 +464,8 @@ const Register = () => {
               Sign In
             </Link>
           </div>
-        </div>
-      </div>
-
-      {/* Hero Section - Right */}
-      <div className="auth-hero-section">
-        <div className="hero-content">
-          <div className="hero-icon">🚀</div>
-          <h2 className="hero-title">Welcome to InternConnect</h2>
-          <p className="hero-subtitle">
-            Find the perfect internship opportunity that matches your skills and goals.
-          </p>
-
-        </div>
+          </div>
+        </section>
       </div>
     </div>
   );

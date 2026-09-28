@@ -3,6 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../context/AuthContext';
 import { API_BASE_URL, authAPI } from '../services/api';
+import { FiArrowRight, FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi';
+import { FcGoogle } from 'react-icons/fc';
+import { FaLinkedinIn } from 'react-icons/fa';
 import '../styles/Auth.css';
 
 const Login = () => {
@@ -110,24 +113,56 @@ const Login = () => {
   return (
     <div className="auth-page login-page">
       <div className="auth-wrapper">
-        {/* Left Side - Form */}
-        <div className="auth-form-section">
-          <div className="auth-logo">
-            <h2>InternConnect</h2>
+        <section className="auth-promo-section" aria-label="About InternConnect">
+          <div className="brand-panel">
+            <Link to="/" className="brand-lockup" aria-label="InternConnect home">
+              <span className="brand-mark"><FiArrowRight aria-hidden="true" /></span>
+              <span>InternConnect</span>
+            </Link>
+            <div className="brand-message">
+              <span className="brand-eyebrow">Build what comes next</span>
+              <h1>Where ambition meets opportunity.</h1>
+              <p>Find the people, experience, and next steps to move your career forward.</p>
+            </div>
+            <div className="career-visual" aria-hidden="true">
+              <div className="visual-grid" />
+              <div className="visual-track visual-track-one" />
+              <div className="visual-track visual-track-two" />
+              <div className="visual-node visual-node-start"><span /></div>
+              <div className="visual-node visual-node-middle"><span /></div>
+              <div className="visual-node visual-node-end"><span /></div>
+              <div className="visual-label visual-label-start">Skills</div>
+              <div className="visual-label visual-label-middle">Experience</div>
+              <div className="visual-label visual-label-end">Opportunity</div>
+              <div className="visual-coordinate">IC / 01</div>
+            </div>
+            <div className="brand-panel-footer">
+              <span>Internships with direction.</span>
+              <span className="brand-footer-line" />
+            </div>
           </div>
+        </section>
 
+        <section className="auth-form-section">
           <div className="auth-card">
+            <Link to="/" className="mobile-brand-lockup" aria-label="InternConnect home">
+              <span className="brand-mark"><FiArrowRight aria-hidden="true" /></span>
+              <span>InternConnect</span>
+            </Link>
             <div className="auth-header">
-              <h1>Welcome Back</h1>
-              <p>Sign in to access your dashboard and track your career growth.</p>
+              <span className="auth-kicker">YOUR NEXT CHAPTER STARTS HERE</span>
+              <h2>Welcome back</h2>
+              <p>Sign in to continue to your InternConnect account.</p>
             </div>
 
             {/* User Type Tabs */}
-            <div className="user-type-tabs">
+            <div className="user-type-tabs" role="tablist" aria-label="Choose account type">
               <button
                 type="button"
                 className={`tab-btn ${userType === 'student' ? 'active' : ''}`}
                 onClick={() => setUserType('student')}
+                role="tab"
+                aria-selected={userType === 'student'}
               >
                 Student
               </button>
@@ -135,6 +170,8 @@ const Login = () => {
                 type="button"
                 className={`tab-btn ${userType === 'company' ? 'active' : ''}`}
                 onClick={() => setUserType('company')}
+                role="tab"
+                aria-selected={userType === 'company'}
               >
                 Recruiter
               </button>
@@ -142,6 +179,8 @@ const Login = () => {
                 type="button"
                 className={`tab-btn ${userType === 'admin' ? 'active' : ''}`}
                 onClick={() => setUserType('admin')}
+                role="tab"
+                aria-selected={userType === 'admin'}
               >
                 Admin
               </button>
@@ -161,6 +200,7 @@ const Login = () => {
                   className={`form-input ${errors.email ? 'input-error' : ''}`}
                   disabled={loading}
                 />
+                <FiMail className="field-icon" aria-hidden="true" />
                 {errors.email && <span className="error-message">{errors.email}</span>}
               </div>
 
@@ -178,14 +218,15 @@ const Login = () => {
                     className={`form-input ${errors.password ? 'input-error' : ''}`}
                     disabled={loading}
                   />
+                  <FiLock className="field-icon" aria-hidden="true" />
                   <button
                     type="button"
                     className="password-eye-btn"
                     onClick={() => setShowPassword(!showPassword)}
-                    tabIndex="-1"
                     aria-label="Toggle password visibility"
+                    aria-pressed={showPassword}
                   >
-                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                    {showPassword ? <FiEyeOff aria-hidden="true" /> : <FiEye aria-hidden="true" />}
                   </button>
                 </div>
                 {errors.password && (
@@ -223,26 +264,22 @@ const Login = () => {
                 disabled={loading}
               >
                 {loading ? 'Signing in...' : 'Sign in'}
-                {!loading && <span className="btn-arrow">→</span>}
+                {!loading && <FiArrowRight aria-hidden="true" />}
               </button>
             </form>
 
             {/* Social Login */}
             <div className="social-login">
               <div className="divider">
-                <span>OR CONTINUE WITH</span>
+                <span>OR</span>
               </div>
               <div className="social-buttons">
                 <button type="button" className="social-btn google-btn" disabled={loading} onClick={handleGoogleLogin}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="10" />
-                  </svg>
+                  <FcGoogle aria-hidden="true" />
                   Google
                 </button>
                 <button type="button" className="social-btn linkedin-btn" disabled={loading}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.39v-1.2h-2.84v8.37h2.84v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.84M6.88 8.56a1.68 1.68 0 1 1 0-3.36 1.68 1.68 0 0 1 0 3.36m1.39 9.94v-8.37H5.5v8.37h2.77z" />
-                  </svg>
+                  <FaLinkedinIn aria-hidden="true" />
                   LinkedIn
                 </button>
               </div>
@@ -258,16 +295,7 @@ const Login = () => {
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Right Side - Promo Card */}
-        <div className="auth-promo-section">
-          <div className="promo-card">
-            <div className="promo-icon">🚀</div>
-            <h2>Elevate Your Career with Data-Driven Matches</h2>
-            <p>Join thousands of students and recruiters building the future of work through our AI-powered internship.</p>
-          </div>
-        </div>
+        </section>
       </div>
     </div>
   );
