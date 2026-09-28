@@ -1705,12 +1705,13 @@ form {
 
 .auth-page.login-page .password-input-wrapper .field-icon {
   z-index: 1;
+  top: 16px;
 }
 
 .auth-page.login-page .password-eye-btn,
 .auth-page.register-page .password-toggle {
   position: absolute;
-  top: 31px;
+  top: 7px;
   right: 11px;
   display: grid;
   width: 34px;
