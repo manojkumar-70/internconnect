@@ -11,7 +11,7 @@ Internship platform with Admin, Student, and Company portals built using React, 
 - Company application managements
 - Backend API integration
 - MongoDB database integrations
-- 
+- my project is good
 ## Project Status
 
 The InterConnect platform provides separate portals for students,
