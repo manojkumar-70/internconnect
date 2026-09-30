@@ -1551,8 +1551,8 @@ form {
 }
 
 .mobile-brand-lockup {
-  display: none;
-  margin-bottom: 32px;
+  display: inline-flex;
+  margin-bottom: 28px;
   color: var(--auth-navy);
 }
 
