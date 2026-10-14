@@ -3,7 +3,7 @@ Internship platform with Admin, Student, and Company portals built using React, 
 
 ## Current Features
 
-- Student registration and login
+- Student registration and logins
 - Company registration and login
 - Admin portal
 - Internship management
