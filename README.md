@@ -1,7 +1,7 @@
 # internconnect
 Internship platform with Admin, Student, and Company portals built using React, Node.js, and MongoDB.
 
-# Current Feature
+## Current Feature
 
 - Student registration and logins
 - Company registration and login
